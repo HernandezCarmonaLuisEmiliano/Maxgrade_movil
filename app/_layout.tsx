@@ -6,6 +6,7 @@ import 'react-native-reanimated';
 import { Colors } from '@/constants/theme';
 import { AuthProvider, useAuth } from '@/context/auth-context';
 import { ClassProvider } from '@/context/class-context';
+import { TaskProvider } from '@/context/task-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { AuthScreen } from '@/screens/auth-screen';
 import { ActivityIndicator, View } from 'react-native';
@@ -40,6 +41,14 @@ function RootLayoutContent() {
             name="join-class"
             options={{ presentation: 'modal', headerShown: false, animationEnabled: true }}
           />
+          <Stack.Screen
+            name="class-detail"
+            options={{ headerShown: false, animationEnabled: true }}
+          />
+          <Stack.Screen
+            name="task-detail"
+            options={{ headerShown: false, animationEnabled: true }}
+          />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         </Stack>
       ) : (
@@ -54,7 +63,9 @@ export default function RootLayout() {
   return (
     <AuthProvider>
       <ClassProvider>
-        <RootLayoutContent />
+        <TaskProvider>
+          <RootLayoutContent />
+        </TaskProvider>
       </ClassProvider>
     </AuthProvider>
   );

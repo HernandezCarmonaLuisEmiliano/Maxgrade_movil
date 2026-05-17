@@ -6,6 +6,7 @@ import { useAuth } from '@/context/auth-context';
 import { useClases } from '@/context/class-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useFocusEffect as useNavFocusEffect } from '@react-navigation/native';
+import { useRouter } from 'expo-router'; // 1. IMPORTAR EL ENRUTADOR DE EXPO
 import React, { useState } from 'react';
 import {
     ActivityIndicator,
@@ -30,11 +31,10 @@ function ClasseCard({ clase, onPress, colorScheme }: ClasseCardProps) {
       style={[styles.cardContainer, { backgroundColor: '#FFFFFF' + '08', borderColor: colors.tint }]}
       onPress={onPress}>
       <View style={{ flex: 1, paddingRight: 8 }}>
-        {/* CORRECCIÓN: Cambiado clase.nombre por clase.nombre_clase */}
         <ThemedText style={styles.cardTitle} type="defaultSemiBold">
-          {clase.nombre_clase || 'Clase sin nombre'}
+          {clase.nombre || 'Clase sin nombre'}
         </ThemedText>
-        <ThemedText style={styles.cardDesc}>{clase.materia || 'Sin descripción'}</ThemedText>
+        <ThemedText style={styles.cardDesc}>{clase.descripcion || 'Sin descripción'}</ThemedText>
         <ThemedText style={styles.cardCode}>Código: {clase.codigo}</ThemedText>
       </View>
       <IconSymbol name="chevron.right" size={24} color={colors.tint} />
@@ -48,6 +48,7 @@ interface ClassesScreenProps {
 }
 
 export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps) {
+  const router = useRouter(); // 2. INSTANCIAR EL ROUTER
   const [loading, setLoading] = useState(false);
   const { user, logout } = useAuth();
   const { clases, obtenerMisClases } = useClases();
@@ -84,8 +85,12 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
     ]);
   };
 
+  // 3. ENVIAR LOS PARÁMETROS NECESARIOS A CLASS-DETAIL
   const handleClassPress = (clase: any) => {
-    // Aquí puedes navegar a la pantalla de detalles de la clase
+    router.push({
+      pathname: '/class-detail',
+      params: { claseId: clase.id }
+    });
   };
 
   return (
