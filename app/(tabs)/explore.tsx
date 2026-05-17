@@ -1,112 +1,106 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import { Colors } from '@/constants/theme';
+import { useColorScheme } from '@/hooks/use-color-scheme';
+import { StyleSheet, View } from 'react-native';
 
-export default function TabTwoScreen() {
+export default function ExploreScreen() {
+  const colorScheme = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <ThemedView style={styles.container}>
+      <View style={[styles.header, { borderBottomColor: colors.tint + '20' }]}>
+        <ThemedText type="title">Ayuda</ThemedText>
+      </View>
+
+      <View style={styles.content}>
+        <View style={styles.section}>
+          <IconSymbol name="book.fill" size={32} color={colors.tint} />
+          <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            Sobre Classroom
+          </ThemedText>
+          <ThemedText style={styles.sectionText}>
+            Una aplicación minimalista para gestionar clases, crear tus propias clases y unirte a
+            otras usando códigos de 6 caracteres.
+          </ThemedText>
+        </View>
+
+        <View style={styles.section}>
+          <IconSymbol name="plus.circle.fill" size={32} color={colors.tint} />
+          <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            Crear una Clase
+          </ThemedText>
+          <ThemedText style={styles.sectionText}>
+            Presiona el botón &#34;Crear Clase&#34; en la pantalla principal, ingresa el nombre y
+            descripción. Recibirás un código único de 6 caracteres.
+          </ThemedText>
+        </View>
+
+        <View style={styles.section}>
+          <IconSymbol name="checkmark.circle.fill" size={32} color={colors.tint} />
+          <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            Unirse a una Clase
+          </ThemedText>
+          <ThemedText style={styles.sectionText}>
+            Presiona el botón &#34;Unirse&#34; e ingresa el código de 6 caracteres proporcionado por tu
+            profesor.
+          </ThemedText>
+        </View>
+
+        <View style={styles.section}>
+          <IconSymbol name="power" size={32} color={colors.tint} />
+          <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            Cerrar Sesión
+          </ThemedText>
+          <ThemedText style={styles.sectionText}>
+            Toca el icono de poder en la esquina superior derecha de la pantalla de clases para
+            cerrar sesión.
+          </ThemedText>
+        </View>
+      </View>
+
+      <View style={styles.footer}>
+        <ThemedText style={styles.version}>Versión 1.0.0</ThemedText>
+      </View>
+    </ThemedView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    marginTop: 8,
+    marginBottom: 6,
+  },
+  sectionText: {
+    fontSize: 14,
+    opacity: 0.7,
+    lineHeight: 20,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingBottom: 20,
+  },
+  version: {
+    opacity: 0.5,
+    fontSize: 12,
   },
 });
