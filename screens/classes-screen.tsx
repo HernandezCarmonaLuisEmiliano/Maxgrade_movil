@@ -23,20 +23,19 @@ interface ClasseCardProps {
 }
 
 function ClasseCard({ clase, onPress, colorScheme }: ClasseCardProps) {
-    
   const colors = Colors[(colorScheme ?? 'light') as keyof typeof Colors];
 
   return (
     <TouchableOpacity
       style={[styles.cardContainer, { backgroundColor: '#FFFFFF' + '08', borderColor: colors.tint }]}
       onPress={onPress}>
-      <View>
+      <View style={{ flex: 1, paddingRight: 8 }}>
+        {/* CORRECCIÓN: Cambiado clase.nombre por clase.nombre_clase */}
         <ThemedText style={styles.cardTitle} type="defaultSemiBold">
-          {clase.nombre}
+          {clase.nombre_clase || 'Clase sin nombre'}
         </ThemedText>
-        <ThemedText style={styles.cardDesc}>{clase.descripcion}</ThemedText>
+        <ThemedText style={styles.cardDesc}>{clase.materia || 'Sin descripción'}</ThemedText>
         <ThemedText style={styles.cardCode}>Código: {clase.codigo}</ThemedText>
-        <ThemedText style={styles.cardMembers}>{clase.miembros.length} miembros</ThemedText>
       </View>
       <IconSymbol name="chevron.right" size={24} color={colors.tint} />
     </TouchableOpacity>
@@ -137,7 +136,7 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
       ) : (
         <FlatList
           data={clases}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
             <ClasseCard clase={item} onPress={() => handleClassPress(item)} colorScheme={colorScheme ?? 'light'} />
           )}
@@ -220,10 +219,6 @@ const styles = StyleSheet.create({
     fontSize: 12,
     opacity: 0.5,
     marginBottom: 2,
-  },
-  cardMembers: {
-    fontSize: 12,
-    opacity: 0.5,
   },
   loaderContainer: {
     flex: 1,

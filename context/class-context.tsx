@@ -1,19 +1,21 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '@/config/supabase';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { Alert } from 'react-native';
 import { useAuth } from './auth-context';
 
+// 1. Limpiamos la interfaz removiendo por completo la propiedad 'miembros'
 export interface Clase {
   id: string;
   codigo: string;
   nombre: string;
   descripcion: string;
   creador: string;
-  fechaCreacion: string;
-  miembros: string[];
+  fecha_creacion?: string;
 }
 
 interface ClassContextType {
   clases: Clase[];
+  loading: boolean;
   crearClase: (nombre: string, descripcion: string) => Promise<string>;
   unirseClase: (codigo: string) => Promise<void>;
   salirClase: (claseId: string) => Promise<void>;
@@ -24,28 +26,48 @@ const ClassContext = createContext<ClassContextType | undefined>(undefined);
 
 export function ClassProvider({ children }: { children: ReactNode }) {
   const [clases, setClases] = useState<Clase[]>([]);
+  const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
     if (user) {
       cargarClases();
+    } else {
+      setClases([]);
     }
   }, [user]);
 
+  // LEER CLASES (Filtra basándose únicamente en la tabla relacional 'inscripciones')
   const cargarClases = async () => {
-    try {
-      const clasesJson = await AsyncStorage.getItem('clases');
-      const todasLasClases = clasesJson ? JSON.parse(clasesJson) : [];
+    if (!user) return;
+    setLoading(true);
 
-      // Filtrar clases donde el usuario es miembro o creador
-      const misClases = todasLasClases.filter(
-        (clase: Clase) =>
-          clase.creador === user?.id || clase.miembros.includes(user?.id || '')
+    try {
+      const { data: inscripciones, error: errorInsc } = await supabase
+        .from('inscripciones')
+        .select('clase_id')
+        .eq('estudiante_id', user.id);
+
+      if (errorInsc) throw errorInsc;
+
+      const claseIds = inscripciones ? inscripciones.map((item) => item.clase_id) : [];
+
+      const { data, error } = await supabase
+        .from('clases')
+        .select('*');
+
+      if (error) throw error;
+
+      // Un usuario ve la clase si es el creador (profesor) o si está inscrito (alumno)
+      const misClases = (data as Clase[]).filter(
+        (clase) => clase.creador === user.id || claseIds.includes(clase.id)
       );
 
       setClases(misClases);
     } catch (error) {
       console.error('Error cargando clases:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -58,101 +80,150 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     return codigo;
   };
 
+  // CREAR CLASE
   const crearClase = async (nombre: string, descripcion: string): Promise<string> => {
     try {
       if (!user) throw new Error('Usuario no autenticado');
 
-      const clasesJson = await AsyncStorage.getItem('clases');
-      const todasLasClases = clasesJson ? JSON.parse(clasesJson) : [];
-
       let codigo = generarCodigo();
-      // Verificar que el código sea único
-      while (todasLasClases.some((c: Clase) => c.codigo === codigo)) {
-        codigo = generarCodigo();
+      let codigoExistente = true;
+
+      while (codigoExistente) {
+        const { data } = await supabase
+          .from('clases')
+          .select('codigo')
+          .eq('codigo', codigo)
+          .maybeSingle();
+        
+        if (!data) {
+          codigoExistente = false;
+        } else {
+          codigo = generarCodigo();
+        }
       }
 
-      const nuevaClase: Clase = {
-        id: Date.now().toString(),
-        codigo,
-        nombre,
-        descripcion,
-        creador: user.id,
-        fechaCreacion: new Date().toISOString(),
-        miembros: [user.id],
-      };
+      // Insertamos la clase sin mandar ningún campo 'miembros'
+      const { data: nuevaClase, error } = await supabase
+        .from('clases')
+        .insert([
+          {
+            codigo,
+            nombre: nombre.trim(),
+            descripcion: descripcion.trim(),
+            creador: user.id,
+          },
+        ])
+        .select()
+        .single();
 
-      todasLasClases.push(nuevaClase);
-      await AsyncStorage.setItem('clases', JSON.stringify(todasLasClases));
-      setClases([...clases, nuevaClase]);
+      if (error) throw error;
+
+      if (nuevaClase) {
+        // Vinculamos al profesor en la tabla inscripciones por consistencia escolar
+        await supabase.from('inscripciones').insert([
+          {
+            clase_id: nuevaClase.id,
+            estudiante_id: user.id,
+          },
+        ]);
+
+        setClases((clasesActuales) => [...clasesActuales, nuevaClase as Clase]);
+      }
 
       return codigo;
-    } catch (error) {
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'No se pudo crear la clase');
       throw error;
     }
   };
 
+  // UNIRSE A CLASE
   const unirseClase = async (codigo: string) => {
     try {
       if (!user) throw new Error('Usuario no autenticado');
 
-      const clasesJson = await AsyncStorage.getItem('clases');
-      const todasLasClases = clasesJson ? JSON.parse(clasesJson) : [];
+      const { data: clase, error: fetchError } = await supabase
+        .from('clases')
+        .select('*')
+        .eq('codigo', codigo.trim().toUpperCase())
+        .maybeSingle();
 
-      const clase = todasLasClases.find((c: Clase) => c.codigo === codigo);
-
-      if (!clase) {
+      if (fetchError || !clase) {
         throw new Error('Código de clase inválido');
       }
 
-      if (clase.miembros.includes(user.id)) {
-        throw new Error('Ya eres miembro de esta clase');
+      const { data: yaInscrito } = await supabase
+        .from('inscripciones')
+        .select('*')
+        .eq('clase_id', clase.id)
+        .eq('estudiante_id', user.id)
+        .maybeSingle();
+
+      if (yaInscrito) {
+        throw new Error('Ya estás unido a esta clase');
       }
 
-      clase.miembros.push(user.id);
-      await AsyncStorage.setItem('clases', JSON.stringify(todasLasClases));
-      setClases([...clases, clase]);
-    } catch (error) {
+      // La inscripción ahora es una inserción pura en la tabla relacional
+      const { error: insertError } = await supabase
+        .from('inscripciones')
+        .insert([
+          {
+            clase_id: clase.id,
+            estudiante_id: user.id,
+          },
+        ]);
+
+      if (insertError) throw insertError;
+
+      await cargarClases();
+      Alert.alert('Éxito', `Te has unido a: ${clase.nombre}`);
+
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'No se pudo unir a la clase');
       throw error;
     }
   };
 
+  // SALIR DE CLASE
   const salirClase = async (claseId: string) => {
     try {
       if (!user) throw new Error('Usuario no autenticado');
 
-      const clasesJson = await AsyncStorage.getItem('clases');
-      const todasLasClases = clasesJson ? JSON.parse(clasesJson) : [];
+      const { error } = await supabase
+        .from('inscripciones')
+        .delete()
+        .eq('clase_id', claseId)
+        .eq('estudiante_id', user.id);
 
-      const clase = todasLasClases.find((c: Clase) => c.id === claseId);
+      if (error) throw error;
 
-      if (clase) {
-        clase.miembros = clase.miembros.filter((id: string) => id !== user.id);
-
-        // Si no hay miembros y el usuario es el creador, eliminar la clase
-        if (clase.miembros.length === 0 && clase.creador === user.id) {
-          const index = todasLasClases.indexOf(clase);
-          todasLasClases.splice(index, 1);
-        }
-
-        await AsyncStorage.setItem('clases', JSON.stringify(todasLasClases));
-        setClases(clases.filter((c) => c.id !== claseId));
-      }
-    } catch (error) {
+      setClases((clasesActuales) => clasesActuales.filter((c) => c.id !== claseId));
+      Alert.alert('Éxito', 'Has salido de la clase correctamente');
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'No se pudo salir de la clase');
       throw error;
     }
   };
 
+  // OBTENER MIS CLASES DIRECTO
   const obtenerMisClases = async (): Promise<Clase[]> => {
+    if (!user) return [];
     try {
-      const clasesJson = await AsyncStorage.getItem('clases');
-      const todasLasClases = clasesJson ? JSON.parse(clasesJson) : [];
+      const { data: inscripciones } = await supabase
+        .from('inscripciones')
+        .select('clase_id')
+        .eq('estudiante_id', user.id);
 
-      return todasLasClases.filter(
-        (clase: Clase) =>
-          clase.creador === user?.id || clase.miembros.includes(user?.id || '')
+      const claseIds = inscripciones ? inscripciones.map((item) => item.clase_id) : [];
+
+      const { data } = await supabase.from('clases').select('*');
+      if (!data) return [];
+
+      return (data as Clase[]).filter(
+        (clase) => clase.creador === user.id || claseIds.includes(clase.id)
       );
     } catch (error) {
-      console.error('Error obteniendo clases:', error);
+      console.error('Error en obtenerMisClases:', error);
       return [];
     }
   };
@@ -161,6 +232,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
     <ClassContext.Provider
       value={{
         clases,
+        loading,
         crearClase,
         unirseClase,
         salirClase,

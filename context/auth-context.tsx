@@ -1,11 +1,17 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { supabase } from '@/config/supabase';
+import React, { createContext, ReactNode, useContext, useState } from 'react';
+import { Alert } from 'react-native';
 
+// Definimos la estructura del usuario basada en las columnas reales de tu tabla
 interface User {
   id: string;
   nombre: string;
   apellido: string;
   correo: string;
+  expo_push_token?: string | null;
+  recordatorio_frecuencia?: string | null;
+  recordatorio_intervalo_horas?: number | null;
+  hora_preferida?: number | null;
 }
 
 interface AuthContextType {
@@ -20,56 +26,42 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // No requiere carga inicial compleja en este flujo
 
-  // Verificar si hay usuario guardado al iniciar
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const userData = await AsyncStorage.getItem('currentUser');
-        if (userData) {
-          setUser(JSON.parse(userData));
-        }
-      } catch (error) {
-        console.error('Error checking user:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkUser();
-  }, []);
-
+  // INICIAR SESIÓN (Buscando directamente en la tabla con .eq)
   const login = async (correo: string, contraseña: string) => {
     try {
-      // Obtener todos los usuarios registrados
-      const usersJson = await AsyncStorage.getItem('users');
-      const users = usersJson ? JSON.parse(usersJson) : [];
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('*')
+        .eq('email', correo.trim())
+        .eq('password', contraseña.trim())
+        .single(); // Trae un solo objeto en lugar de un array
 
-      // Buscar usuario con correo y contraseña
-      const foundUser = users.find(
-        (u: any) => u.correo === correo && u.contraseña === contraseña
-      );
-
-      if (!foundUser) {
-        throw new Error('Correo o contraseña incorrectos');
+      if (error || !data) {
+        Alert.alert('Error', 'Correo o contraseña incorrectos');
+        return;
       }
 
-      // Guardar usuario actual
-      const currentUser = {
-        id: foundUser.id,
-        nombre: foundUser.nombre,
-        apellido: foundUser.apellido,
-        correo: foundUser.correo,
-      };
+      // Guardamos en el estado global el usuario con todos sus campos de la tabla
+      setUser({
+        id: data.id,
+        nombre: data.nombre,
+        apellido: data.apellido,
+        correo: data.email,
+        expo_push_token: data.expo_push_token,
+        recordatorio_frecuencia: data.recordatorio_frecuencia,
+        recordatorio_intervalo_horas: data.recordatorio_intervalo_horas,
+        hora_preferida: data.hora_preferida,
+      });
 
-      await AsyncStorage.setItem('currentUser', JSON.stringify(currentUser));
-      setUser(currentUser);
     } catch (error) {
-      throw error;
+      console.error(error);
+      Alert.alert('Error', 'Error al conectar con el servidor');
     }
   };
 
+  // REGISTRAR NUEVO USUARIO (Insertando directamente en la tabla usuarios)
   const registro = async (
     nombre: string,
     apellido: string,
@@ -77,49 +69,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     contraseña: string
   ) => {
     try {
-      // Obtener usuarios existentes
-      const usersJson = await AsyncStorage.getItem('users');
-      const users = usersJson ? JSON.parse(usersJson) : [];
+      // 1. Primero verificamos si el correo ya existe en tu tabla para evitar duplicados
+      const { data: existe } = await supabase
+        .from('usuarios')
+        .select('email')
+        .eq('email', correo.trim())
+        .maybeSingle();
 
-      // Verificar si el correo ya existe
-      if (users.some((u: any) => u.correo === correo)) {
-        throw new Error('Este correo ya está registrado');
+      if (existe) {
+        Alert.alert('Error', 'Este correo ya está registrado');
+        return;
       }
 
-      // Crear nuevo usuario
-      const newUser = {
-        id: Date.now().toString(),
-        nombre,
-        apellido,
-        correo,
-        contraseña,
-      };
+      // 2. Insertamos el nuevo renglón con los campos obligatorios y valores por defecto para MaxGrade
+      const { data: nuevosDatos, error } = await supabase
+        .from('usuarios')
+        .insert([
+          {
+            nombre: nombre.trim(),
+            apellido: apellido.trim(),
+            email: correo.trim(),
+            password: contraseña.trim(), // Se guarda tal cual en tu columna password text
+            recordatorio_frecuencia: 'diaria', // Valor inicial para el sistema de tareas
+            recordatorio_intervalo_horas: 24,  // Cada cuántas horas recordar
+          },
+        ])
+        .select() // Le pedimos a Supabase que nos devuelva el registro creado (incluyendo su ID autogenerado)
+        .single();
 
-      users.push(newUser);
-      await AsyncStorage.setItem('users', JSON.stringify(users));
+      if (error) throw error;
 
-      // Hacer login automático
-      const currentUser = {
-        id: newUser.id,
-        nombre: newUser.nombre,
-        apellido: newUser.apellido,
-        correo: newUser.correo,
-      };
+      // 3. Logeo automático: guardamos el usuario recién creado en el estado de la app
+      if (nuevosDatos) {
+        setUser({
+          id: nuevosDatos.id,
+          nombre: nuevosDatos.nombre,
+          apellido: nuevosDatos.apellido,
+          correo: nuevosDatos.email,
+          recordatorio_frecuencia: nuevosDatos.recordatorio_frecuencia,
+          recordatorio_intervalo_horas: nuevosDatos.recordatorio_intervalo_horas,
+        });
+        Alert.alert('Éxito', '¡Usuario registrado correctamente!');
+      }
 
-      await AsyncStorage.setItem('currentUser', JSON.stringify(currentUser));
-      setUser(currentUser);
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert('Error', error.message || 'No se pudo completar el registro');
     }
   };
 
+  // CERRAR SESIÓN
   const logout = async () => {
-    try {
-      await AsyncStorage.removeItem('currentUser');
-      setUser(null);
-    } catch (error) {
-      console.error('Error logout:', error);
-    }
+    setUser(null);
   };
 
   return (
