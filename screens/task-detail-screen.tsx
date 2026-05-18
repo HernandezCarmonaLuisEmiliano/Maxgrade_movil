@@ -1,11 +1,9 @@
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
 import { Comentario, Entrega, Tarea, useTareas } from '@/context/task-context';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import * as DocumentPicker from 'expo-document-picker';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
@@ -16,21 +14,17 @@ import {
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 
 export function TaskDetailScreen() {
   const router = useRouter();
   const { tareaId, claseId, esProfesor: esProfesorParam } = useLocalSearchParams<{
-    tareaId: string;
-    claseId: string;
-    esProfesor: string;
+    tareaId: string; claseId: string; esProfesor: string;
   }>();
-  
+
   const { user } = useAuth();
   const { tareas, entregarTarea, obtenerEntrega, calificarEntrega, anularEntrega, eliminarArchivo, agregarComentario, obtenerComentarios } = useTareas();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
 
   const esProfesor = esProfesorParam === 'true';
   const [tarea, setTarea] = useState<Tarea | null>(null);
@@ -44,11 +38,7 @@ export function TaskDetailScreen() {
   const [calificacion, setCalificacion] = useState('');
   const [nuevoComentario, setNuevoComentario] = useState('');
 
-  useEffect(() => {
-    if (tareaId) {
-      cargarDatos();
-    }
-  }, [tareaId]);
+  useEffect(() => { if (tareaId) cargarDatos(); }, [tareaId]);
 
   const cargarDatos = async () => {
     setLoading(true);
@@ -56,7 +46,6 @@ export function TaskDetailScreen() {
       const tareaEncontrada = tareas.find((t) => t.id === tareaId);
       if (tareaEncontrada) {
         setTarea(tareaEncontrada);
-
         if (!esProfesor && user) {
           const entregaCargada = await obtenerEntrega(tareaId, user.id);
           if (entregaCargada) {
@@ -72,33 +61,27 @@ export function TaskDetailScreen() {
       setLoading(false);
     }
   };
-  const handleConfirmarEntrega = async () => {
-  // Verificamos que exista la entrega, tenga archivo, y el estado sea estrictamente null
-  if (!entrega || entrega.estado !== null) return;
 
-  // Optimistic update: mark as entregado locally
-  setEntrega((prev) => (prev ? { ...prev, estado: 'entregado' } as Entrega : prev));
-  try {
-    // Al volver a llamar a entregarTarea con el archivo ya existente, tu backend/Supabase 
-    // se encargará de cambiar el estado de null a 'entregado'
-    await entregarTarea(tareaId, user!.id, entrega.archivo_url || '', entrega.nombre_archivo || '');
-    Alert.alert('Éxito', '¡Tu tarea ha sido entregada!');
-    await cargarDatos();
-  } catch (error) {
-    Alert.alert('Error', (error as Error).message);
-  } finally {
-    setEntrega(null);
-  }
-};
+  const handleConfirmarEntrega = async () => {
+    if (!entrega || entrega.estado !== null) return;
+    setEntrega((prev) => (prev ? { ...prev, estado: 'entregado' } as Entrega : prev));
+    try {
+      await entregarTarea(tareaId, user!.id, entrega.archivo_url || '', entrega.nombre_archivo || '');
+      Alert.alert('Éxito', '¡Tu tarea ha sido entregada!');
+      await cargarDatos();
+    } catch (error) {
+      Alert.alert('Error', (error as Error).message);
+    } finally {
+      setEntrega(null);
+    }
+  };
 
   const handleSeleccionarArchivo = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({ type: '*/*' });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
+      if (!result.canceled && result.assets?.length > 0) {
         const archivo = result.assets[0];
         setSubiendo(true);
-
         try {
           await entregarTarea(tareaId, user!.id, archivo.uri, archivo.name);
           Alert.alert('Éxito', 'Archivo subido correctamente');
@@ -115,129 +98,121 @@ export function TaskDetailScreen() {
   };
 
   const handleAnularEntrega = () => {
-    Alert.alert('Anular entrega', '¿Estás seguro de que deseas anular tu entrega?', [
+    Alert.alert('Anular entrega', '¿Estás seguro?', [
       { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Anular',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await anularEntrega(tareaId, user!.id);
-            Alert.alert('Éxito', 'Entrega anulada');
-            await cargarDatos();
-          } catch (error) {
-            Alert.alert('Error', (error as Error).message);
-          }
-        },
-      },
+      { text: 'Anular', style: 'destructive', onPress: async () => {
+        try {
+          await anularEntrega(tareaId, user!.id);
+          Alert.alert('Éxito', 'Entrega anulada');
+          await cargarDatos();
+        } catch (error) { Alert.alert('Error', (error as Error).message); }
+      }},
     ]);
   };
 
   const handleEliminarArchivo = () => {
-    Alert.alert('Eliminar archivo', '¿Estás seguro de que deseas eliminar el archivo?', [
+    Alert.alert('Eliminar archivo', '¿Estás seguro?', [
       { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await eliminarArchivo(tareaId, user!.id);
-            Alert.alert('Éxito', 'Archivo eliminado');
-            await cargarDatos();
-          } catch (error) {
-            Alert.alert('Error', (error as Error).message);
-          }
-        },
-      },
+      { text: 'Eliminar', style: 'destructive', onPress: async () => {
+        try {
+          await eliminarArchivo(tareaId, user!.id);
+          Alert.alert('Éxito', 'Archivo eliminado');
+          await cargarDatos();
+        } catch (error) { Alert.alert('Error', (error as Error).message); }
+      }},
     ]);
   };
 
   const handleCalificar = async () => {
-    if (!calificacion.trim()) {
-      Alert.alert('Error', 'Ingresa la calificación');
-      return;
-    }
-
+    if (!calificacion.trim()) { Alert.alert('Error', 'Ingresa la calificación'); return; }
     setCalificando(true);
     try {
       await calificarEntrega(entrega!.id, parseFloat(calificacion), nuevoComentario);
       Alert.alert('Éxito', 'Tarea calificada correctamente');
-      setCalificacion('');
-      setNuevoComentario('');
-      setMostrarCalificar(false);
+      setCalificacion(''); setNuevoComentario(''); setMostrarCalificar(false);
       await cargarDatos();
     } catch (error) {
       Alert.alert('Error', (error as Error).message);
-    } finally {
-      setCalificando(false);
-    }
+    } finally { setCalificando(false); }
   };
 
   const handleAgregarComentario = async () => {
-    if (!nuevoComentario.trim()) {
-      Alert.alert('Error', 'Escribe un comentario');
-      return;
-    }
-
+    if (!nuevoComentario.trim()) { Alert.alert('Error', 'Escribe un comentario'); return; }
     try {
       await agregarComentario(entrega!.id, user!.id, `${user?.nombre} ${user?.apellido}`, nuevoComentario);
       Alert.alert('Éxito', 'Comentario agregado');
-      setNuevoComentario('');
-      setMostrarComentario(false);
+      setNuevoComentario(''); setMostrarComentario(false);
       await cargarDatos();
-    } catch (error) {
-      Alert.alert('Error', (error as Error).message);
-    }
+    } catch (error) { Alert.alert('Error', (error as Error).message); }
+  };
+
+  const getEstadoColor = (estado: string | null) => {
+    if (estado === 'entregado') return '#10B981';
+    if (estado === 'calificado') return '#3B82F6';
+    return '#F97316';
+  };
+
+  const getEstadoIcon = (estado: string | null) => {
+    if (estado === 'entregado') return 'checkmark.circle.fill';
+    if (estado === 'calificado') return 'star.fill';
+    return 'clock.fill';
+  };
+
+  const getEstadoLabel = (estado: string | null) => {
+    if (estado === 'entregado') return 'Entregado';
+    if (estado === 'calificado') return 'Calificado';
+    return 'Pendiente';
   };
 
   if (loading) {
     return (
-      <ThemedView style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={colors.tint} />
-      </ThemedView>
+      <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#32a4b8" />
+      </LinearGradient>
     );
   }
 
   if (!tarea) {
     return (
-      <ThemedView style={styles.centerContainer}>
+      <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={styles.centerContainer}>
         <ThemedText>Tarea no encontrada</ThemedText>
-      </ThemedView>
+      </LinearGradient>
     );
   }
 
   return (
-    <ThemedView style={styles.container}>
+    <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.tint }]}>
+      <LinearGradient
+        colors={['#32c4d8', '#32e880']}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <IconSymbol name="chevron.left" size={24} color="#fff" />
         </TouchableOpacity>
-        <ThemedText style={[styles.headerTitle, { color: '#fff' }]} type="title">
-          {tarea.titulo}
-        </ThemedText>
-      </View>
+        <ThemedText style={styles.headerTitle}>{tarea.titulo}</ThemedText>
+      </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Info Card */}
-        <View style={[styles.infoCard, { backgroundColor: colors.tint + '10', borderColor: colors.tint + '30' }]}>
+        <View style={styles.infoCard}>
           <View style={styles.infoRow}>
-            <IconSymbol name="star.fill" size={18} color={colors.tint} />
+            <View style={styles.infoIconBox}>
+              <IconSymbol name="star.fill" size={18} color="#32a4b8" />
+            </View>
             <View style={{ flex: 1 }}>
               <ThemedText style={styles.infoLabel}>Puntos máximos</ThemedText>
-              <ThemedText style={styles.infoValue} type="defaultSemiBold">
-                {tarea.puntos_maximos}
-              </ThemedText>
+              <ThemedText style={styles.infoValue}>{tarea.puntos_maximos}</ThemedText>
             </View>
           </View>
-
-          <View style={[styles.divider, { backgroundColor: colors.text + '15' }]} />
-
+          <View style={styles.divider} />
           <View style={styles.infoRow}>
-            <IconSymbol name="calendar" size={18} color={colors.tint} />
+            <View style={styles.infoIconBox}>
+              <IconSymbol name="calendar" size={18} color="#32a4b8" />
+            </View>
             <View style={{ flex: 1 }}>
               <ThemedText style={styles.infoLabel}>Fecha de entrega</ThemedText>
-              <ThemedText style={styles.infoValue} type="defaultSemiBold">
+              <ThemedText style={styles.infoValue}>
                 {new Date(tarea.fecha_entrega).toLocaleDateString()}
               </ThemedText>
             </View>
@@ -246,69 +221,28 @@ export function TaskDetailScreen() {
 
         {/* Descripción */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle} type="subtitle">
-            Descripción
+          <ThemedText style={styles.sectionTitle}>Descripción</ThemedText>
+          <ThemedText style={styles.description}>
+            {tarea.descripcion || 'Sin descripción adicional'}
           </ThemedText>
-          <ThemedText style={styles.description}>{tarea.descripcion || 'Sin descripción adicional'}</ThemedText>
         </View>
 
         {/* ALUMNO VIEW */}
         {!esProfesor && (
           <>
-            {/* Estado de Entrega */}
+            {/* Estado */}
             {entrega && (
-              <View
-                style={[
-                  styles.statusCard,
-                  {
-                    backgroundColor:
-                      entrega.estado === 'entregado'
-                        ? '#10B98140'
-                        : entrega.estado === 'calificado'
-                        ? '#3B82F640'
-                        : '#FCA5A540',
-                    borderColor:
-                      entrega.estado === 'entregado'
-                        ? '#10B981'
-                        : entrega.estado === 'calificado'
-                        ? '#3B82F6'
-                        : '#F97316',
-                  },
-                ]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <View style={[styles.statusCard, {
+                backgroundColor: getEstadoColor(entrega.estado) + '20',
+                borderColor: getEstadoColor(entrega.estado),
+              }]}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                   <IconSymbol
-                    name={
-                      entrega.estado === 'entregado'
-                        ? 'checkmark.circle.fill'
-                        : entrega.estado === 'calificado'
-                        ? 'star.fill'
-                        : 'clock.fill'
-                    }
-                    size={20}
-                    color={
-                      entrega.estado === 'entregado'
-                        ? '#10B981'
-                        : entrega.estado === 'calificado'
-                        ? '#3B82F6'
-                        : '#F97316'
-                    }
-                  />
+                    name={getEstadoIcon(entrega.estado)}
+                    size={22} color={getEstadoColor(entrega.estado)} />
                   <View>
-                    <ThemedText
-                      type="defaultSemiBold"
-                      style={{
-                        color:
-                          entrega.estado === 'entregado'
-                            ? '#10B981'
-                            : entrega.estado === 'calificado'
-                            ? '#3B82F6'
-                            : '#F97316',
-                      }}>
-                      {entrega.estado === 'entregado'
-                        ? 'Entregado'
-                        : entrega.estado === 'calificado'
-                        ? 'Calificado'
-                        : 'Pendiente'}
+                    <ThemedText style={[styles.estadoLabel, { color: getEstadoColor(entrega.estado) }]}>
+                      {getEstadoLabel(entrega.estado)}
                     </ThemedText>
                     {entrega.fecha_entrega && (
                       <ThemedText style={styles.statusDate}>
@@ -317,10 +251,9 @@ export function TaskDetailScreen() {
                     )}
                   </View>
                 </View>
-
                 {entrega.calificacion && (
-                  <View style={styles.gradeContainer}>
-                    <ThemedText type="defaultSemiBold" style={styles.grade}>
+                  <View style={[styles.gradeContainer, { backgroundColor: getEstadoColor(entrega.estado) + '30' }]}>
+                    <ThemedText style={[styles.grade, { color: getEstadoColor(entrega.estado) }]}>
                       {entrega.calificacion}/{tarea.puntos_maximos}
                     </ThemedText>
                   </View>
@@ -331,32 +264,40 @@ export function TaskDetailScreen() {
             {/* Acciones Alumno */}
             <View style={styles.actionsContainer}>
               {!entrega || entrega.estado === 'pendiente' ? (
-                <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.tint }]} onPress={handleSeleccionarArchivo} disabled={subiendo}>
-                  <IconSymbol name="doc.badge.plus" size={18} color="#fff" />
-                  <ThemedText style={styles.actionBtnText}>{subiendo ? 'Subiendo...' : 'Subir Archivo'}</ThemedText>
-                </TouchableOpacity>
+                <LinearGradient
+                  colors={['#32c4d8', '#32e880']}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                  style={styles.actionGradient}>
+                  <TouchableOpacity style={styles.actionBtn} onPress={handleSeleccionarArchivo} disabled={subiendo}>
+                    <IconSymbol name="doc.badge.plus" size={18} color="#fff" />
+                    <ThemedText style={styles.actionBtnText}>{subiendo ? 'Subiendo...' : 'Subir Archivo'}</ThemedText>
+                  </TouchableOpacity>
+                </LinearGradient>
               ) : (
-                <>
-                  <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.tint }]} onPress={handleSeleccionarArchivo} disabled={subiendo}>
-                    <IconSymbol name="arrow.clockwise" size={18} color="#fff" />
-                    <ThemedText style={styles.actionBtnText}>Resubir</ThemedText>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.actionBtn, { backgroundColor: '#EF444440' }]}
-                    onPress={handleAnularEntrega}>
+                <View style={{ gap: 10 }}>
+                  <LinearGradient
+                    colors={['#32c4d8', '#32e880']}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                    style={styles.actionGradient}>
+                    <TouchableOpacity style={styles.actionBtn} onPress={handleSeleccionarArchivo} disabled={subiendo}>
+                      <IconSymbol name="arrow.clockwise" size={18} color="#fff" />
+                      <ThemedText style={styles.actionBtnText}>Resubir</ThemedText>
+                    </TouchableOpacity>
+                  </LinearGradient>
+                  <TouchableOpacity style={styles.actionBtnOutline} onPress={handleAnularEntrega}>
                     <IconSymbol name="xmark.circle" size={18} color="#EF4444" />
-                    <ThemedText style={[styles.actionBtnText, { color: '#EF4444' }]}>Anular</ThemedText>
+                    <ThemedText style={[styles.actionBtnText, { color: '#EF4444' }]}>Anular entrega</ThemedText>
                   </TouchableOpacity>
-                </>
+                </View>
               )}
 
               {entrega?.nombre_archivo && (
-                <View style={[styles.fileCard, { backgroundColor: colors.text + '08', borderColor: colors.tint }]}>
-                  <IconSymbol name="doc.fill" size={24} color={colors.tint} />
+                <View style={styles.fileCard}>
+                  <View style={styles.fileIconBox}>
+                    <IconSymbol name="doc.fill" size={22} color="#32a4b8" />
+                  </View>
                   <View style={{ flex: 1 }}>
-                    <ThemedText style={styles.fileName} type="defaultSemiBold">
-                      {entrega.nombre_archivo}
-                    </ThemedText>
+                    <ThemedText style={styles.fileName}>{entrega.nombre_archivo}</ThemedText>
                     {entrega.fecha_entrega && (
                       <ThemedText style={styles.fileDate}>
                         {new Date(entrega.fecha_entrega).toLocaleDateString()}
@@ -373,42 +314,43 @@ export function TaskDetailScreen() {
             {/* Comentarios */}
             {entrega && (
               <View style={styles.commentsSection}>
-                <ThemedText style={styles.sectionTitle} type="subtitle">
-                  Comentarios
-                </ThemedText>
+                <ThemedText style={styles.sectionTitle}>Comentarios</ThemedText>
 
                 {entrega.comentarios_profesor && (
-                  <View style={[styles.commentCard, { backgroundColor: colors.tint + '10', borderColor: colors.tint }]}>
-                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
-                      <View style={[styles.avatar, { backgroundColor: colors.tint }]}>
-                        <IconSymbol name="person.fill" size={16} color="#fff" />
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <ThemedText type="defaultSemiBold">Profesor</ThemedText>
-                        <ThemedText style={styles.commentText}>{entrega.comentarios_profesor}</ThemedText>
-                      </View>
+                  <View style={styles.commentCardProfe}>
+                    <LinearGradient
+                      colors={['#32c4b8', '#32e880']}
+                      style={styles.commentAvatar}
+                      start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                      <IconSymbol name="person.fill" size={14} color="#fff" />
+                    </LinearGradient>
+                    <View style={{ flex: 1 }}>
+                      <ThemedText style={styles.commentAuthor}>Profesor</ThemedText>
+                      <ThemedText style={styles.commentText}>{entrega.comentarios_profesor}</ThemedText>
                     </View>
                   </View>
                 )}
 
-                <TouchableOpacity
-                  style={[styles.commentBtn, { backgroundColor: colors.tint + '20', borderColor: colors.tint }]}
-                  onPress={() => setMostrarComentario(true)}>
-                  <IconSymbol name="plus.circle" size={18} color={colors.tint} />
-                  <ThemedText style={{ color: colors.tint }}>Agregar comentario</ThemedText>
+                <TouchableOpacity style={styles.addCommentBtn} onPress={() => setMostrarComentario(true)}>
+                  <IconSymbol name="plus.circle" size={18} color="#32a4b8" />
+                  <ThemedText style={{ color: '#32a4b8', fontWeight: '600', fontSize: 14 }}>
+                    Agregar comentario
+                  </ThemedText>
                 </TouchableOpacity>
 
                 {comentarios.map((c) => (
-                  <View key={c.id} style={[styles.commentCard, { backgroundColor: colors.text + '08' }]}>
-                    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
-                      <View style={[styles.avatar, { backgroundColor: colors.text + '30' }]}>
-                        <ThemedText style={{ fontSize: 10 }}>{c.autor_nombre[0]}</ThemedText>
-                      </View>
-                      <View style={{ flex: 1 }}>
-                        <ThemedText type="defaultSemiBold">{c.autor_nombre}</ThemedText>
-                        <ThemedText style={styles.commentText}>{c.contenido}</ThemedText>
-                        <ThemedText style={styles.commentDate}>{new Date(c.fecha_creacion).toLocaleDateString()}</ThemedText>
-                      </View>
+                  <View key={c.id} style={styles.commentCard}>
+                    <View style={[styles.commentAvatar, { backgroundColor: '#d0eaf2' }]}>
+                      <ThemedText style={{ fontSize: 13, fontWeight: 'bold', color: '#32a4b8' }}>
+                        {c.autor_nombre[0]}
+                      </ThemedText>
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <ThemedText style={styles.commentAuthor}>{c.autor_nombre}</ThemedText>
+                      <ThemedText style={styles.commentText}>{c.contenido}</ThemedText>
+                      <ThemedText style={styles.commentDate}>
+                        {new Date(c.fecha_creacion).toLocaleDateString()}
+                      </ThemedText>
                     </View>
                   </View>
                 ))}
@@ -420,289 +362,229 @@ export function TaskDetailScreen() {
         {/* PROFESOR VIEW */}
         {esProfesor && (
           <View style={styles.teacherSection}>
-            <ThemedText style={styles.sectionTitle} type="subtitle">
-              Entregas de Estudiantes
-            </ThemedText>
-            <TouchableOpacity style={[styles.actionBtn, { backgroundColor: colors.tint }]} onPress={() => setMostrarCalificar(true)}>
-              <IconSymbol name="pencil.circle" size={18} color="#fff" />
-              <ThemedText style={styles.actionBtnText}>Ver Entregas</ThemedText>
-            </TouchableOpacity>
+            <ThemedText style={styles.sectionTitle}>Entregas de Estudiantes</ThemedText>
+            <LinearGradient
+              colors={['#32c4d8', '#32e880']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              style={styles.actionGradient}>
+              <TouchableOpacity style={styles.actionBtn} onPress={() => setMostrarCalificar(true)}>
+                <IconSymbol name="pencil.circle" size={18} color="#fff" />
+                <ThemedText style={styles.actionBtnText}>Ver Entregas</ThemedText>
+              </TouchableOpacity>
+            </LinearGradient>
           </View>
         )}
       </ScrollView>
 
-      {/* Modal Agregar Comentario */}
+      {/* Modal Comentario */}
       <Modal visible={mostrarComentario} transparent animationType="slide">
-        <ThemedView style={styles.modalContainer}>
-          <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
-            <View style={styles.modalHeader}>
-              <ThemedText type="title">Nuevo Comentario</ThemedText>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <LinearGradient
+              colors={['#32c4d8', '#32e880']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              style={styles.modalHeader}>
+              <ThemedText style={styles.modalTitle}>Nuevo Comentario</ThemedText>
               <TouchableOpacity onPress={() => setMostrarComentario(false)}>
-                <IconSymbol name="xmark" size={24} color={colors.text} />
+                <IconSymbol name="xmark" size={22} color="#fff" />
               </TouchableOpacity>
+            </LinearGradient>
+            <View style={{ padding: 20 }}>
+              <View style={styles.modalInputWrapper}>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Escribe tu comentario..."
+                  placeholderTextColor="#aac0cc"
+                  value={nuevoComentario}
+                  onChangeText={setNuevoComentario}
+                  multiline textAlignVertical="top"
+                />
+              </View>
+              <LinearGradient
+                colors={['#32c4d8', '#32e880']}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                style={styles.submitGradient}>
+                <TouchableOpacity style={styles.submitBtn} onPress={handleAgregarComentario}>
+                  <ThemedText style={styles.submitBtnText}>Enviar</ThemedText>
+                </TouchableOpacity>
+              </LinearGradient>
             </View>
-            <TextInput
-              style={[styles.commentInput, { color: colors.text, borderColor: colors.tint }]}
-              placeholder="Escribe tu comentario..."
-              placeholderTextColor={colors.text + '80'}
-              value={nuevoComentario}
-              onChangeText={setNuevoComentario}
-              multiline
-              textAlignVertical="top"
-            />
-            <TouchableOpacity
-              style={[styles.submitBtn, { backgroundColor: colors.tint }]}
-              onPress={handleAgregarComentario}>
-              <ThemedText style={styles.submitBtnText}>Enviar</ThemedText>
-            </TouchableOpacity>
           </View>
-        </ThemedView>
+        </View>
       </Modal>
 
       {/* Modal Calificar */}
       <Modal visible={mostrarCalificar} transparent animationType="slide">
-        <ThemedView style={styles.modalContainer}>
-          <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
-            <View style={styles.modalHeader}>
-              <ThemedText type="title">Calificar Tarea</ThemedText>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <LinearGradient
+              colors={['#32c4d8', '#32e880']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              style={styles.modalHeader}>
+              <ThemedText style={styles.modalTitle}>Calificar Tarea</ThemedText>
               <TouchableOpacity onPress={() => setMostrarCalificar(false)}>
-                <IconSymbol name="xmark" size={24} color={colors.text} />
+                <IconSymbol name="xmark" size={22} color="#fff" />
               </TouchableOpacity>
+            </LinearGradient>
+            <View style={{ padding: 20 }}>
+              <ThemedText style={styles.modalLabel}>Calificación</ThemedText>
+              <View style={styles.modalInputWrapper}>
+                <TextInput
+                  style={[styles.modalInput, { minHeight: 0, paddingVertical: 12 }]}
+                  placeholder="Ej: 95"
+                  placeholderTextColor="#aac0cc"
+                  value={calificacion}
+                  onChangeText={setCalificacion}
+                  keyboardType="decimal-pad"
+                />
+              </View>
+              <ThemedText style={[styles.modalLabel, { marginTop: 12 }]}>Comentario</ThemedText>
+              <View style={styles.modalInputWrapper}>
+                <TextInput
+                  style={styles.modalInput}
+                  placeholder="Comentario del profesor..."
+                  placeholderTextColor="#aac0cc"
+                  value={nuevoComentario}
+                  onChangeText={setNuevoComentario}
+                  multiline textAlignVertical="top"
+                />
+              </View>
+              <LinearGradient
+                colors={['#32c4d8', '#32e880']}
+                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                style={styles.submitGradient}>
+                <TouchableOpacity style={styles.submitBtn} onPress={handleCalificar} disabled={calificando}>
+                  {calificando
+                    ? <ActivityIndicator color="#fff" />
+                    : <ThemedText style={styles.submitBtnText}>Calificar</ThemedText>}
+                </TouchableOpacity>
+              </LinearGradient>
             </View>
-            <TextInput
-              style={[styles.input, { color: colors.text, borderColor: colors.tint }]}
-              placeholder="Calificación"
-              placeholderTextColor={colors.text + '80'}
-              value={calificacion}
-              onChangeText={setCalificacion}
-              keyboardType="decimal-pad"
-            />
-            <TextInput
-              style={[styles.commentInput, { color: colors.text, borderColor: colors.tint }]}
-              placeholder="Comentario del profesor..."
-              placeholderTextColor={colors.text + '80'}
-              value={nuevoComentario}
-              onChangeText={setNuevoComentario}
-              multiline
-              textAlignVertical="top"
-            />
-            <TouchableOpacity
-              style={[styles.submitBtn, { backgroundColor: colors.tint }]}
-              onPress={handleCalificar}
-              disabled={calificando}>
-              {calificando ? <ActivityIndicator color="#fff" /> : <ThemedText style={styles.submitBtnText}>Calificar</ThemedText>}
-            </TouchableOpacity>
           </View>
-        </ThemedView>
+        </View>
       </Modal>
-    </ThemedView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 20,
-    gap: 12,
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 16, paddingTop: 52, paddingBottom: 20, gap: 12,
   },
   backBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    width: 40, height: 40, borderRadius: 20,
+    justifyContent: 'center', alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.25)',
   },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  scrollContent: {
-    padding: 20,
-    paddingBottom: 30,
-  },
+  headerTitle: { flex: 1, fontSize: 18, fontWeight: 'bold', color: '#fff' },
+
+  scrollContent: { padding: 16, paddingBottom: 36 },
+
   infoCard: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 20,
+    backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 16,
+    borderWidth: 1.5, borderColor: '#d0eaf2', padding: 16, marginBottom: 16,
+    shadowColor: '#32c4b8', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08, shadowRadius: 8, elevation: 3,
   },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  infoIconBox: {
+    width: 40, height: 40, borderRadius: 12,
+    backgroundColor: '#e0f7fa', justifyContent: 'center', alignItems: 'center',
   },
-  infoLabel: {
-    fontSize: 12,
-    opacity: 0.6,
-  },
-  infoValue: {
-    fontSize: 15,
-    marginTop: 4,
-  },
-  divider: {
-    height: 1,
-    marginVertical: 12,
-  },
+  infoLabel: { fontSize: 11, color: '#7a9aaa', letterSpacing: 0.5 },
+  infoValue: { fontSize: 16, fontWeight: '600', color: '#1a3a4a', marginTop: 2 },
+  divider: { height: 1, backgroundColor: '#d0eaf2', marginVertical: 12 },
+
   section: {
-    marginBottom: 20,
+    backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 16,
+    borderWidth: 1.5, borderColor: '#d0eaf2', padding: 16, marginBottom: 16,
   },
-  sectionTitle: {
-    marginBottom: 12,
-  },
-  description: {
-    fontSize: 14,
-    lineHeight: 20,
-    opacity: 0.7,
-  },
+  sectionTitle: { fontSize: 15, fontWeight: '700', color: '#32a4b8', marginBottom: 10 },
+  description: { fontSize: 14, lineHeight: 22, color: '#1a3a4a' },
+
   statusCard: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    borderWidth: 1.5, borderRadius: 16, padding: 16, marginBottom: 16,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
   },
-  statusDate: {
-    fontSize: 11,
-    opacity: 0.6,
-    marginTop: 2,
-  },
-  gradeContainer: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 6,
-    backgroundColor: 'rgba(0,0,0,0.1)',
-  },
-  grade: {
-    fontSize: 14,
-  },
-  actionsContainer: {
-    marginBottom: 20,
-    gap: 12,
-  },
+  estadoLabel: { fontSize: 15, fontWeight: '700' },
+  statusDate: { fontSize: 11, color: '#7a9aaa', marginTop: 2 },
+  gradeContainer: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10 },
+  grade: { fontSize: 15, fontWeight: '700' },
+
+  actionsContainer: { marginBottom: 16, gap: 10 },
+  actionGradient: { borderRadius: 14 },
   actionBtn: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'center', gap: 8, paddingVertical: 14,
   },
-  actionBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
+  actionBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
+  actionBtnOutline: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 8, paddingVertical: 13, borderRadius: 14,
+    borderWidth: 1.5, borderColor: '#EF4444', backgroundColor: '#FEF2F2',
   },
+
   fileCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    gap: 12,
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: 'rgba(255,255,255,0.9)', borderRadius: 14,
+    borderWidth: 1.5, borderColor: '#d0eaf2', padding: 14,
   },
-  fileName: {
-    fontSize: 14,
+  fileIconBox: {
+    width: 44, height: 44, borderRadius: 12,
+    backgroundColor: '#e0f7fa', justifyContent: 'center', alignItems: 'center',
   },
-  fileDate: {
-    fontSize: 11,
-    opacity: 0.6,
-    marginTop: 2,
-  },
-  commentsSection: {
-    marginTop: 20,
+  fileName: { fontSize: 14, fontWeight: '600', color: '#1a3a4a' },
+  fileDate: { fontSize: 11, color: '#7a9aaa', marginTop: 2 },
+
+  commentsSection: { marginTop: 4 },
+  commentCardProfe: {
+    flexDirection: 'row', gap: 10,
+    backgroundColor: '#e0f7fa', borderRadius: 14,
+    borderWidth: 1.5, borderColor: '#b0dcea', padding: 14, marginBottom: 10,
   },
   commentCard: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 12,
+    flexDirection: 'row', gap: 10,
+    backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 14,
+    borderWidth: 1.5, borderColor: '#d0eaf2', padding: 14, marginBottom: 10,
   },
-  commentBtn: {
-    flexDirection: 'row',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderWidth: 1,
-    marginBottom: 12,
+  commentAvatar: {
+    width: 34, height: 34, borderRadius: 17,
+    justifyContent: 'center', alignItems: 'center',
   },
-  commentText: {
-    fontSize: 13,
-    lineHeight: 18,
-    marginTop: 6,
+  commentAuthor: { fontSize: 13, fontWeight: '600', color: '#1a3a4a' },
+  commentText: { fontSize: 13, lineHeight: 18, color: '#1a3a4a', marginTop: 4 },
+  commentDate: { fontSize: 11, color: '#7a9aaa', marginTop: 4 },
+  addCommentBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 8, paddingVertical: 12, borderRadius: 14, marginBottom: 10,
+    borderWidth: 1.5, borderColor: '#32a4b8', backgroundColor: 'rgba(50,164,184,0.08)',
   },
-  commentDate: {
-    fontSize: 11,
-    opacity: 0.5,
-    marginTop: 4,
-  },
-  avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  teacherSection: {
-    marginTop: 20,
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-  },
+
+  teacherSection: { marginTop: 4 },
+
+  modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' },
   modalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: '80%',
+    backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
+    overflow: 'hidden',
   },
   modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
+    flexDirection: 'row', justifyContent: 'space-between',
+    alignItems: 'center', paddingHorizontal: 20, paddingVertical: 18,
   },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 12,
+  modalTitle: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
+  modalLabel: { color: '#7a9aaa', fontSize: 11, letterSpacing: 0.8, marginBottom: 8 },
+  modalInputWrapper: {
+    backgroundColor: '#f0f8fb', borderWidth: 1.5,
+    borderColor: '#d0eaf2', borderRadius: 12, marginBottom: 8,
   },
-  commentInput: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    minHeight: 100,
-    marginBottom: 16,
+  modalInput: {
+    paddingHorizontal: 14, paddingVertical: 10,
+    fontSize: 15, color: '#1a3a4a', minHeight: 90,
   },
-  submitBtn: {
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  submitBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
+  submitGradient: { borderRadius: 14, marginTop: 16 },
+  submitBtn: { height: 52, justifyContent: 'center', alignItems: 'center' },
+  submitBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
 });

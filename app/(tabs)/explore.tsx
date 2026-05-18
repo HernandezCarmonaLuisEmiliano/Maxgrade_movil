@@ -1,106 +1,131 @@
 import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-import { StyleSheet, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 export default function ExploreScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const secciones = [
+    {
+      icon: 'book.fill',
+      titulo: 'Sobre MaxGrade',
+      texto: 'Una aplicación minimalista para gestionar clases, crear tus propias clases y unirte a otras usando códigos de 6 caracteres.',
+      color: ['#32c4b8', '#32e880'] as [string, string],
+    },
+    {
+      icon: 'plus.circle.fill',
+      titulo: 'Crear una Clase',
+      texto: 'Presiona el botón "Crear Clase" en la pantalla principal, ingresa el nombre y descripción. Recibirás un código único de 6 caracteres.',
+      color: ['#32a4d8', '#32c4b8'] as [string, string],
+    },
+    {
+      icon: 'checkmark.circle.fill',
+      titulo: 'Unirse a una Clase',
+      texto: 'Presiona el botón "Unirse" e ingresa el código de 6 caracteres proporcionado por tu profesor.',
+      color: ['#32c4d8', '#32e880'] as [string, string],
+    },
+    {
+      icon: 'power',
+      titulo: 'Cerrar Sesión',
+      texto: 'Toca tu avatar en la esquina superior derecha de la pantalla de clases para abrir el menú y cerrar sesión.',
+      color: ['#32a4b8', '#32c4d8'] as [string, string],
+    },
+  ];
 
   return (
-    <ThemedView style={styles.container}>
-      <View style={[styles.header, { borderBottomColor: colors.tint + '20' }]}>
-        <ThemedText type="title">Ayuda</ThemedText>
-      </View>
+    <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
+      {/* Header */}
+      <LinearGradient
+        colors={['#32c4d8', '#32e880']}
+        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        style={styles.header}>
+        <ThemedText style={styles.headerTitle}>Ayuda</ThemedText>
+        <ThemedText style={styles.headerSubtitle}>Todo lo que necesitas saber</ThemedText>
+      </LinearGradient>
 
-      <View style={styles.content}>
-        <View style={styles.section}>
-          <IconSymbol name="book.fill" size={32} color={colors.tint} />
-          <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-            Sobre Classroom
-          </ThemedText>
-          <ThemedText style={styles.sectionText}>
-            Una aplicación minimalista para gestionar clases, crear tus propias clases y unirte a
-            otras usando códigos de 6 caracteres.
-          </ThemedText>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        {/* Logo decorativo */}
+        <View style={styles.logoContainer}>
+          <LinearGradient
+            colors={['#32c4b8', '#32e880']}
+            style={styles.logoBox}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+            <ThemedText style={styles.logoLetter}>M</ThemedText>
+          </LinearGradient>
+          <ThemedText style={styles.logoMax}>Max</ThemedText>
+          <ThemedText style={styles.logoGrade}>Grade</ThemedText>
         </View>
 
-        <View style={styles.section}>
-          <IconSymbol name="plus.circle.fill" size={32} color={colors.tint} />
-          <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-            Crear una Clase
-          </ThemedText>
-          <ThemedText style={styles.sectionText}>
-            Presiona el botón &#34;Crear Clase&#34; en la pantalla principal, ingresa el nombre y
-            descripción. Recibirás un código único de 6 caracteres.
-          </ThemedText>
-        </View>
+        {/* Secciones */}
+        {secciones.map((s, i) => (
+          <View key={i} style={styles.card}>
+            <LinearGradient
+              colors={s.color}
+              style={styles.cardIcon}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+              <IconSymbol name={s.icon as any} size={22} color="#fff" />
+            </LinearGradient>
+            <View style={{ flex: 1 }}>
+              <ThemedText style={styles.cardTitle}>{s.titulo}</ThemedText>
+              <ThemedText style={styles.cardText}>{s.texto}</ThemedText>
+            </View>
+          </View>
+        ))}
 
-        <View style={styles.section}>
-          <IconSymbol name="checkmark.circle.fill" size={32} color={colors.tint} />
-          <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-            Unirse a una Clase
-          </ThemedText>
-          <ThemedText style={styles.sectionText}>
-            Presiona el botón &#34;Unirse&#34; e ingresa el código de 6 caracteres proporcionado por tu
-            profesor.
-          </ThemedText>
+        {/* Footer */}
+        <View style={styles.footer}>
+          <View style={styles.versionBadge}>
+            <ThemedText style={styles.versionText}>Versión 1.0.0</ThemedText>
+          </View>
         </View>
-
-        <View style={styles.section}>
-          <IconSymbol name="power" size={32} color={colors.tint} />
-          <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
-            Cerrar Sesión
-          </ThemedText>
-          <ThemedText style={styles.sectionText}>
-            Toca el icono de poder en la esquina superior derecha de la pantalla de clases para
-            cerrar sesión.
-          </ThemedText>
-        </View>
-      </View>
-
-      <View style={styles.footer}>
-        <ThemedText style={styles.version}>Versión 1.0.0</ThemedText>
-      </View>
-    </ThemedView>
+      </ScrollView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   header: {
     paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 20,
-    borderBottomWidth: 1,
+    paddingTop: 52,
+    paddingBottom: 24,
   },
-  content: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingVertical: 20,
+  headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#fff' },
+  headerSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
+
+  content: { padding: 16, paddingBottom: 36 },
+
+  logoContainer: {
+    flexDirection: 'row', alignItems: 'center',
+    justifyContent: 'center', gap: 8,
+    marginVertical: 24,
   },
-  section: {
-    marginBottom: 24,
+  logoBox: {
+    width: 40, height: 40, borderRadius: 10,
+    justifyContent: 'center', alignItems: 'center',
   },
-  sectionTitle: {
-    marginTop: 8,
-    marginBottom: 6,
+  logoLetter: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+  logoMax: { fontSize: 22, fontWeight: 'bold', color: '#32a4b8' },
+  logoGrade: { fontSize: 22, fontWeight: 'bold', color: '#32b880' },
+
+  card: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 14,
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderRadius: 16, borderWidth: 1.5, borderColor: '#d0eaf2',
+    padding: 16, marginBottom: 12,
+    shadowColor: '#32c4b8', shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07, shadowRadius: 8, elevation: 2,
   },
-  sectionText: {
-    fontSize: 14,
-    opacity: 0.7,
-    lineHeight: 20,
+  cardIcon: {
+    width: 46, height: 46, borderRadius: 14,
+    justifyContent: 'center', alignItems: 'center',
   },
-  footer: {
-    alignItems: 'center',
-    paddingBottom: 20,
+  cardTitle: { fontSize: 15, fontWeight: '700', color: '#1a3a4a', marginBottom: 6 },
+  cardText: { fontSize: 13, color: '#7a9aaa', lineHeight: 20 },
+
+  footer: { alignItems: 'center', marginTop: 12 },
+  versionBadge: {
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 20, paddingHorizontal: 16, paddingVertical: 6,
+    borderWidth: 1, borderColor: '#d0eaf2',
   },
-  version: {
-    opacity: 0.5,
-    fontSize: 12,
-  },
+  versionText: { fontSize: 12, color: '#7a9aaa' },
 });

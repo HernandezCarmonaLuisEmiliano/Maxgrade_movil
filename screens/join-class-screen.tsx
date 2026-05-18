@@ -1,20 +1,13 @@
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
 import { useClases } from '@/context/class-context';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator, Alert, KeyboardAvoidingView,
+  Platform, ScrollView, StyleSheet, TextInput,
+  TouchableOpacity, View,
 } from 'react-native';
 
 export function JoinClassScreen() {
@@ -22,154 +15,133 @@ export function JoinClassScreen() {
   const [loading, setLoading] = useState(false);
   const { unirseClase } = useClases();
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
 
   const handleJoinClass = async () => {
-    if (!codigo.trim()) {
-      Alert.alert('Error', 'Por favor ingresa un código de clase');
-      return;
-    }
-
-    if (codigo.trim().length !== 6) {
-      Alert.alert('Error', 'El código debe tener exactamente 6 caracteres');
-      return;
-    }
-
+    if (!codigo.trim()) { Alert.alert('Error', 'Por favor ingresa un código de clase'); return; }
+    if (codigo.trim().length !== 6) { Alert.alert('Error', 'El código debe tener exactamente 6 caracteres'); return; }
     setLoading(true);
     try {
       await unirseClase(codigo.trim().toUpperCase());
-      Alert.alert('Éxito', '¡Te has unido a la clase!', [
-        {
-          text: 'OK',
-          onPress: () => router.back(),
-        },
-      ]);
+      Alert.alert('Éxito', '¡Te has unido a la clase!', [{ text: 'OK', onPress: () => router.back() }]);
     } catch (error) {
       Alert.alert('Error', (error as Error).message);
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
+  const letras = codigo.padEnd(6, ' ').split('');
+
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-      <ScrollView contentContainerStyle={[styles.container, { backgroundColor: colors.background }]}>
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={[styles.closeBtn, { backgroundColor: colors.text + '08' }]}
-            onPress={() => router.back()}>
-            <IconSymbol name="xmark" size={20} color={colors.text} />
-          </TouchableOpacity>
-          <ThemedText style={styles.title} type="title">
-            Unirse a Clase
-          </ThemedText>
-        </View>
+    <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={styles.container}>
 
-        <View style={styles.icon}>
-          <IconSymbol name="qrcode" size={80} color={colors.tint + '40'} />
-        </View>
+          {/* Header */}
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
+              <IconSymbol name="xmark" size={18} color="#32a4b8" />
+            </TouchableOpacity>
+            <ThemedText style={styles.title}>Unirse a Clase</ThemedText>
+          </View>
 
-        <View style={styles.form}>
-          <ThemedText style={styles.description}>
-            Ingresa el código de clase de 6 caracteres que tu profesor compartió
-          </ThemedText>
+          {/* Icono */}
+          <View style={styles.iconContainer}>
+            <LinearGradient
+              colors={['#32c4b8', '#32e880']}
+              style={styles.iconBox}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+              <IconSymbol name="qrcode" size={36} color="#fff" />
+            </LinearGradient>
+            <ThemedText style={styles.iconTitle}>Ingresa el código de tu profesor</ThemedText>
+            <ThemedText style={styles.iconSubtitle}>El código tiene 6 caracteres (letras y números)</ThemedText>
+          </View>
 
-          <TextInput
-            style={[styles.input, { borderColor: colors.tint, color: colors.text }]}
-            placeholder="Ej: ABC123"
-            placeholderTextColor={colors.text + '80'}
-            value={codigo}
-            onChangeText={(text) => setCodigo(text.toUpperCase())}
-            editable={!loading}
-            autoCapitalize="characters"
-            maxLength={6}
-            textAlign="center"
-            selectionColor={colors.tint}
-          />
+          {/* Input visual por letras */}
+          <View style={styles.codigosContainer}>
+            {letras.map((letra, i) => (
+              <View key={i} style={[styles.letraBox, letra.trim() !== '' && styles.letraBoxFilled]}>
+                <ThemedText style={styles.letraText}>{letra.trim()}</ThemedText>
+              </View>
+            ))}
+          </View>
 
-          <ThemedText style={styles.hint}>El código es de 6 caracteres (letras y números)</ThemedText>
+          {/* Input real oculto visualmente pero funcional */}
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={styles.input}
+              placeholder="ABC123"
+              placeholderTextColor="#aac0cc"
+              value={codigo}
+              onChangeText={(text) => setCodigo(text.toUpperCase())}
+              editable={!loading}
+              autoCapitalize="characters"
+              maxLength={6}
+              textAlign="center"
+              selectionColor="#32a4b8"
+              autoCorrect={false}
+            />
+          </View>
 
-          <TouchableOpacity
-            style={[styles.button, { backgroundColor: colors.tint }]}
-            onPress={handleJoinClass}
-            disabled={loading}>
-            {loading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <ThemedText style={styles.buttonText}>Unirse</ThemedText>
-            )}
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <LinearGradient
+            colors={codigo.trim().length === 6 ? ['#32c4d8', '#32e880'] : ['#d0eaf2', '#d0eaf2']}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            style={styles.buttonGradient}>
+            <TouchableOpacity style={styles.button} onPress={handleJoinClass} disabled={loading}>
+              {loading
+                ? <ActivityIndicator color="#fff" />
+                : <ThemedText style={styles.buttonText}>Unirse a la Clase</ThemedText>}
+            </TouchableOpacity>
+          </LinearGradient>
+
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flexGrow: 1,
-    padding: 20,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 30,
-    marginTop: 10,
-  },
+  container: { flexGrow: 1, padding: 20, paddingTop: 52 },
+  header: { flexDirection: 'row', alignItems: 'center', marginBottom: 28 },
   closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
+    width: 38, height: 38, borderRadius: 12,
+    justifyContent: 'center', alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    borderWidth: 1.5, borderColor: '#d0eaf2', marginRight: 14,
   },
-  title: {
-    flex: 1,
-    fontSize: 24,
+  title: { fontSize: 24, fontWeight: 'bold', color: '#1a3a4a' },
+  iconContainer: { alignItems: 'center', marginBottom: 36 },
+  iconBox: {
+    width: 80, height: 80, borderRadius: 24,
+    justifyContent: 'center', alignItems: 'center', marginBottom: 14,
   },
-  icon: {
-    alignItems: 'center',
-    marginVertical: 30,
+  iconTitle: { fontSize: 16, fontWeight: '600', color: '#1a3a4a', marginBottom: 6 },
+  iconSubtitle: { color: '#7a9aaa', fontSize: 13, textAlign: 'center' },
+
+  // Cajas visuales por letra
+  codigosContainer: {
+    flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 20,
   },
-  form: {
-    marginTop: 20,
+  letraBox: {
+    width: 46, height: 56, borderRadius: 12,
+    justifyContent: 'center', alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.8)',
+    borderWidth: 1.5, borderColor: '#d0eaf2',
   },
-  description: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 30,
-    opacity: 0.7,
-    lineHeight: 24,
+  letraBoxFilled: { borderColor: '#32a4b8', backgroundColor: '#e0f7fa' },
+  letraText: { fontSize: 22, fontWeight: 'bold', color: '#1a3a4a' },
+
+  // Input funcional debajo de las cajas
+  inputWrapper: {
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    borderWidth: 1.5, borderColor: '#d0eaf2',
+    borderRadius: 14, marginBottom: 28, marginHorizontal: 20,
   },
   input: {
-    borderWidth: 2,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 16,
-    fontSize: 28,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    letterSpacing: 2,
-    marginBottom: 12,
+    paddingVertical: 14, fontSize: 22,
+    fontWeight: 'bold', color: '#1a3a4a',
+    letterSpacing: 6, textAlign: 'center',
   },
-  hint: {
-    fontSize: 12,
-    opacity: 0.5,
-    textAlign: 'center',
-    marginBottom: 30,
-  },
-  button: {
-    paddingVertical: 13,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
+
+  buttonGradient: { borderRadius: 14 },
+  button: { height: 52, justifyContent: 'center', alignItems: 'center' },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
 });
