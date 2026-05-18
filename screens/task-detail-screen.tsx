@@ -9,14 +9,14 @@ import * as DocumentPicker from 'expo-document-picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 export function TaskDetailScreen() {
@@ -72,6 +72,24 @@ export function TaskDetailScreen() {
       setLoading(false);
     }
   };
+  const handleConfirmarEntrega = async () => {
+  // Verificamos que exista la entrega, tenga archivo, y el estado sea estrictamente null
+  if (!entrega || entrega.estado !== null) return;
+
+  // Optimistic update: mark as entregado locally
+  setEntrega((prev) => (prev ? { ...prev, estado: 'entregado' } as Entrega : prev));
+  try {
+    // Al volver a llamar a entregarTarea con el archivo ya existente, tu backend/Supabase 
+    // se encargará de cambiar el estado de null a 'entregado'
+    await entregarTarea(tareaId, user!.id, entrega.archivo_url || '', entrega.nombre_archivo || '');
+    Alert.alert('Éxito', '¡Tu tarea ha sido entregada!');
+    await cargarDatos();
+  } catch (error) {
+    Alert.alert('Error', (error as Error).message);
+  } finally {
+    setEntrega(null);
+  }
+};
 
   const handleSeleccionarArchivo = async () => {
     try {

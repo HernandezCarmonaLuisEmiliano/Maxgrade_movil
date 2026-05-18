@@ -1,4 +1,6 @@
+import { supabase } from '@/config/supabase';
 import React, { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { Alert } from 'react-native';
 import { useAuth } from './auth-context';
 
 export interface Tarea {
@@ -246,10 +248,9 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       const { error } = await supabase
         .from('entregas')
         .update({
-          estado: 'pendiente',
-          archivo_url: null,
-          nombre_archivo: null,
-          fecha_entrega: null,
+          estado: null,
+          archivo_entrega_url: null,
+          fecha_envio: null,
         })
         .eq('tarea_id', tareaId)
         .eq('estudiante_id', estudianteId);
@@ -268,7 +269,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         .update({
           archivo_url: null,
           nombre_archivo: null,
-          estado: 'pendiente',
+          estado: null,
         })
         .eq('tarea_id', tareaId)
         .eq('estudiante_id', estudianteId);
@@ -309,10 +310,9 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const obtenerComentarios = async (entregaId: string): Promise<Comentario[]> => {
     try {
       const { data, error } = await supabase
-        .from('comentarios')
+        .from('entregas')
         .select('*')
-        .eq('entrega_id', entregaId)
-        .order('fecha_creacion', { ascending: true });
+        .eq('tarea_id', entregaId)
 
       if (error) throw error;
       return (data as Comentario[]) || [];

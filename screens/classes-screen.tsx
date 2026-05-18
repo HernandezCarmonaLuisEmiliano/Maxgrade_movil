@@ -7,14 +7,15 @@ import { useClases } from '@/context/class-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useFocusEffect as useNavFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router'; // 1. IMPORTAR EL ENRUTADOR DE EXPO
+
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    StyleSheet,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 interface ClasseCardProps {
@@ -23,7 +24,8 @@ interface ClasseCardProps {
   colorScheme: 'light' | 'dark';
 }
 
-function ClasseCard({ clase, onPress, colorScheme }: ClasseCardProps) {
+function ClasseCard({ clase, onPress, colorScheme}: ClasseCardProps) {
+  const { clases } = useClases();
   const colors = Colors[(colorScheme ?? 'light') as keyof typeof Colors];
 
   return (
@@ -32,10 +34,10 @@ function ClasseCard({ clase, onPress, colorScheme }: ClasseCardProps) {
       onPress={onPress}>
       <View style={{ flex: 1, paddingRight: 8 }}>
         <ThemedText style={styles.cardTitle} type="defaultSemiBold">
-          {clase.nombre || 'Clase sin nombre'}
+          {clase.nombre_clase || 'Clase sin nombre'}
         </ThemedText>
-        <ThemedText style={styles.cardDesc}>{clase.descripcion || 'Sin descripción'}</ThemedText>
-        <ThemedText style={styles.cardCode}>Código: {clase.codigo}</ThemedText>
+        <ThemedText style={styles.cardDesc}>{clase.materia || 'Sin descripción'}</ThemedText>
+        <ThemedText style={styles.cardCode}>Código: {clase.codigo_acceso}</ThemedText>
       </View>
       <IconSymbol name="chevron.right" size={24} color={colors.tint} />
     </TouchableOpacity>

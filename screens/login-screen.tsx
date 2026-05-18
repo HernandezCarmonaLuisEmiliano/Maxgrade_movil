@@ -4,15 +4,15 @@ import { useAuth } from '@/context/auth-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 interface LoginScreenProps {
@@ -48,7 +48,7 @@ export function LoginScreen({ onSignUp }: LoginScreenProps) {
       <ScrollView contentContainerStyle={[styles.container, { backgroundColor: '#FFFFFF' }]}>
         <View style={styles.header}>
           <ThemedText style={styles.title} type="title">
-            Classroom
+            MaxGrade
           </ThemedText>
           <ThemedText style={styles.subtitle}>Inicia sesión</ThemedText>
         </View>
