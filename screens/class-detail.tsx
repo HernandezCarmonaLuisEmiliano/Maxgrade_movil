@@ -77,7 +77,7 @@ export default function ClassDetailScreen() {
     }
   };
 
-  const cargarTareas = async () => {
+  const cargarTareas = async () => { 
     try {
       const { data, error } = await supabase
         .from('tareas')
