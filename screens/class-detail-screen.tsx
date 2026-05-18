@@ -4,7 +4,6 @@ import { IconSymbol } from '@/components/ui/icon-symbol';
 import { supabase } from '@/config/supabase';
 import { Colors } from '@/constants/theme';
 import { useAuth } from '@/context/auth-context';
-import { Clase, useClases } from '@/context/class-context';
 import { useTareas } from '@/context/task-context';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -23,13 +22,26 @@ import {
   View,
 } from 'react-native';
 
+// Tipo que refleja los campos REALES de la tabla 'clases' en Supabase
+type ClaseReal = {
+  id: string;
+  nombre_clase: string;
+  codigo_acceso: string;
+  descripcion?: string;
+  materia?: string;
+  profesor_id: string;
+  color_tema?: string;
+  portada_url?: string;
+  fecha_creacion?: string;
+};
+
 type Anuncio = {
   id: string;
   clase_id: string;
   autor_id: string;
   contenido: string;
   archivo_adjunto_url: string | null;
-  created_at?: string;
+  fecha_publicacion?: string;
   autor_nombre?: string;
 };
 
@@ -37,12 +49,11 @@ export function ClassDetailScreen() {
   const router = useRouter();
   const { claseId } = useLocalSearchParams<{ claseId: string }>();
   const { user } = useAuth();
-  const { clases } = useClases();
   const { crearTarea } = useTareas();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
-  const [clase, setClase] = useState<Clase | null>(null);
+  const [clase, setClase] = useState<ClaseReal | null>(null);
   const [tareasPorClase, setTareasPorClase] = useState<any[]>([]);
   const [anuncios, setAnuncios] = useState<Anuncio[]>([]);
   const [miembrosCount, setMiembrosCount] = useState(0);
@@ -55,10 +66,7 @@ export function ClassDetailScreen() {
   const [nuevaFecha, setNuevaFecha] = useState('');
   const [creando, setCreando] = useState(false);
 
-  // Tab activo: 'tareas' | 'anuncios'
   const [tabActivo, setTabActivo] = useState<'tareas' | 'anuncios'>('tareas');
-
-  // Anuncios
   const [nuevoAnuncio, setNuevoAnuncio] = useState('');
   const [enviandoAnuncio, setEnviandoAnuncio] = useState(false);
 
@@ -71,28 +79,31 @@ export function ClassDetailScreen() {
   const cargarClase = async () => {
     setLoading(true);
     try {
-      const claseEncontrada = clases.find((c) => c.id === claseId);
-      if (claseEncontrada) {
-        setClase(claseEncontrada);
-        setEsProfesor(claseEncontrada.creador === user?.id);
+      // Cargamos directo desde Supabase para tener los campos reales
+      const { data: claseData, error } = await supabase
+        .from('clases')
+        .select('*')
+        .eq('id', claseId)
+        .single();
 
-        // Cargar tareas
-        const { data: tareas } = await supabase
-          .from('tareas')
-          .select('*')
-          .eq('clase_id', claseId);
-        setTareasPorClase(tareas || []);
+      if (error || !claseData) throw new Error('Clase no encontrada');
 
-        // Cargar miembros
-        const { data: inscritos } = await supabase
-          .from('inscripciones')
-          .select('id')
-          .eq('clase_id', claseId);
-        setMiembrosCount((inscritos || []).length);
+      setClase(claseData as ClaseReal);
+      setEsProfesor(claseData.profesor_id === user?.id);
 
-        // Cargar anuncios
-        await cargarAnuncios();
-      }
+      const { data: tareas } = await supabase
+        .from('tareas')
+        .select('*')
+        .eq('clase_id', claseId);
+      setTareasPorClase(tareas || []);
+
+      const { data: inscritos } = await supabase
+        .from('inscripciones')
+        .select('id')
+        .eq('clase_id', claseId);
+      setMiembrosCount((inscritos || []).length);
+
+      await cargarAnuncios();
     } catch (error) {
       console.error('Error cargando clase:', error);
     } finally {
@@ -104,28 +115,48 @@ export function ClassDetailScreen() {
     try {
       const { data, error } = await supabase
         .from('anuncios')
-        .select('*, usuarios(nombre)')
+        .select(`*, usuarios(nombre, apellido)`)
         .eq('clase_id', claseId)
-        .order('created_at', { ascending: false });
+        .order('fecha_publicacion', { ascending: false });
 
-      if (error) {
-        // Si no tiene join con usuarios, cargamos sin nombre
-        const { data: simple } = await supabase
-          .from('anuncios')
-          .select('*')
-          .eq('clase_id', claseId)
-          .order('created_at', { ascending: false });
-        setAnuncios(simple || []);
-      } else {
-        const anunciosConNombre = (data || []).map((a: any) => ({
-          ...a,
-          autor_nombre: a.usuarios?.nombre ?? 'Usuario',
-        }));
-        setAnuncios(anunciosConNombre);
-      }
+      if (error) throw error;
+
+      const anunciosConNombre = (data || []).map((a: any) => ({
+        ...a,
+        autor_nombre: a.usuarios
+          ? `${a.usuarios.nombre} ${a.usuarios.apellido}`
+          : 'Usuario',
+      }));
+
+      setAnuncios(anunciosConNombre);
     } catch (error) {
       console.error('Error cargando anuncios:', error);
     }
+  };
+
+  const handleEliminarAnuncio = (anuncioId: string) => {
+    Alert.alert(
+      'Eliminar anuncio',
+      '¿Estás seguro que deseas eliminar este anuncio?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await supabase
+              .from('anuncios')
+              .delete()
+              .eq('id', anuncioId);
+            if (error) {
+              Alert.alert('Error', 'No se pudo eliminar el anuncio');
+            } else {
+              await cargarAnuncios();
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handlePublicarAnuncio = async () => {
@@ -155,7 +186,6 @@ export function ClassDetailScreen() {
       Alert.alert('Error', 'Ingresa el título de la tarea');
       return;
     }
-
     setCreando(true);
     try {
       await crearTarea(
@@ -165,7 +195,6 @@ export function ClassDetailScreen() {
         parseInt(nuevosPuntos) || 100,
         nuevaFecha || new Date().toISOString()
       );
-
       setNuevoTituloTarea('');
       setNuevaDescripcion('');
       setNuevosPuntos('100');
@@ -209,16 +238,16 @@ export function ClassDetailScreen() {
   return (
     <ThemedView style={styles.container}>
       {/* Header */}
-      <View style={[styles.header, { backgroundColor: colors.tint }]}>
+      <View style={[styles.header, { backgroundColor: clase.color_tema ?? colors.tint }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
           <IconSymbol name="chevron.left" size={24} color="#fff" />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <ThemedText style={[styles.claseName, { color: '#fff' }]} type="title">
-            {clase.nombre}
+            {clase.nombre_clase}
           </ThemedText>
           <ThemedText style={[styles.classCode, { color: 'rgba(255,255,255,0.8)' }]}>
-            Código: {clase.codigo}
+            Código: {clase.codigo_acceso}
           </ThemedText>
         </View>
       </View>
@@ -233,15 +262,23 @@ export function ClassDetailScreen() {
           <IconSymbol name="person.2.fill" size={16} color={colors.tint} />
           <ThemedText style={styles.infoText}>{miembrosCount} miembros</ThemedText>
         </View>
+        {clase.materia && (
+          <View style={styles.infoItem}>
+            <IconSymbol name="book.fill" size={16} color={colors.tint} />
+            <ThemedText style={styles.infoText}>{clase.materia}</ThemedText>
+          </View>
+        )}
       </View>
 
       {/* Descripción */}
-      <View style={styles.descContainer}>
-        <ThemedText style={styles.descTitle} type="defaultSemiBold">
-          Descripción
-        </ThemedText>
-        <ThemedText style={styles.descText}>{clase.descripcion || 'Sin descripción'}</ThemedText>
-      </View>
+      {clase.descripcion ? (
+        <View style={styles.descContainer}>
+          <ThemedText style={styles.descTitle} type="defaultSemiBold">
+            Descripción
+          </ThemedText>
+          <ThemedText style={styles.descText}>{clase.descripcion}</ThemedText>
+        </View>
+      ) : null}
 
       {/* Tabs */}
       <View style={[styles.tabsContainer, { borderBottomColor: colors.tint + '30' }]}>
@@ -261,10 +298,9 @@ export function ClassDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Contenido según tab */}
+      {/* ── TAB TAREAS ── */}
       {tabActivo === 'tareas' ? (
         <View style={styles.tabContent}>
-          {/* Profesor Actions */}
           {esProfesor && (
             <TouchableOpacity
               style={[styles.createTaskBtn, { backgroundColor: colors.tint }]}
@@ -314,7 +350,7 @@ export function ClassDetailScreen() {
           )}
         </View>
       ) : (
-        /* ── ANUNCIOS TAB ── */
+        /* ── TAB ANUNCIOS ── */
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -331,30 +367,37 @@ export function ClassDetailScreen() {
             }
             renderItem={({ item }) => {
               const esMio = item.autor_id === user?.id;
+              const puedeEliminar = esProfesor || esMio;
               return (
-                <View style={[
-                  styles.anuncioCard,
-                  { backgroundColor: colors.tint + '10', borderColor: colors.tint + '25' },
-                  esMio && { alignSelf: 'flex-end', backgroundColor: colors.tint + '20' },
-                ]}>
+                <View style={[styles.anuncioCard, { backgroundColor: colors.tint + '08', borderColor: colors.tint + '20' }]}>
                   <View style={styles.anuncioHeader}>
                     <View style={[styles.anuncioAvatar, { backgroundColor: colors.tint }]}>
                       <ThemedText style={styles.anuncioAvatarText}>
                         {(item.autor_nombre ?? 'U')[0].toUpperCase()}
                       </ThemedText>
                     </View>
-                    <View>
+                    <View style={{ flex: 1 }}>
                       <ThemedText style={styles.anuncioAutor} type="defaultSemiBold">
-                        {esMio ? 'Tú' : (item.autor_nombre ?? 'Usuario')}
+                        {esMio ? `${item.autor_nombre} (Tú)` : item.autor_nombre ?? 'Usuario'}
                       </ThemedText>
-                      {item.created_at && (
+                      {item.fecha_publicacion && (
                         <ThemedText style={styles.anuncioFecha}>
-                          {new Date(item.created_at).toLocaleDateString('es-MX', {
-                            day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit',
+                          {new Date(item.fecha_publicacion).toLocaleDateString('es-MX', {
+                            day: '2-digit',
+                            month: 'short',
+                            hour: '2-digit',
+                            minute: '2-digit',
                           })}
                         </ThemedText>
                       )}
                     </View>
+                    {puedeEliminar && (
+                      <TouchableOpacity
+                        onPress={() => handleEliminarAnuncio(item.id)}
+                        style={styles.deleteBtn}>
+                        <IconSymbol name="trash" size={16} color="#ef4444" />
+                      </TouchableOpacity>
+                    )}
                   </View>
                   <ThemedText style={styles.anuncioContenido}>{item.contenido}</ThemedText>
                 </View>
@@ -362,7 +405,7 @@ export function ClassDetailScreen() {
             }}
           />
 
-          {/* Input para escribir anuncio */}
+          {/* Input publicar anuncio */}
           <View style={[styles.inputAnuncioContainer, { borderTopColor: colors.tint + '20', backgroundColor: colors.background }]}>
             <TextInput
               style={[styles.inputAnuncio, { borderColor: colors.tint + '50', color: colors.text, backgroundColor: colors.tint + '08' }]}
@@ -453,14 +496,8 @@ export function ClassDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  centerContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  container: { flex: 1 },
+  centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -477,14 +514,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.2)',
   },
-  claseName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  classCode: {
-    fontSize: 12,
-    marginTop: 4,
-  },
+  claseName: { fontSize: 20, fontWeight: 'bold' },
+  classCode: { fontSize: 12, marginTop: 4 },
   infoBar: {
     flexDirection: 'row',
     paddingHorizontal: 20,
@@ -495,48 +526,20 @@ const styles = StyleSheet.create({
     marginVertical: 12,
     borderRadius: 8,
   },
-  infoItem: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  infoText: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  descContainer: {
-    paddingHorizontal: 20,
-    marginBottom: 12,
-  },
-  descTitle: {
-    marginBottom: 8,
-  },
-  descText: {
-    fontSize: 14,
-    opacity: 0.7,
-    lineHeight: 20,
-  },
-  // Tabs
+  infoItem: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  infoText: { fontSize: 12, fontWeight: '500' },
+  descContainer: { paddingHorizontal: 20, marginBottom: 12 },
+  descTitle: { marginBottom: 8 },
+  descText: { fontSize: 14, opacity: 0.7, lineHeight: 20 },
   tabsContainer: {
     flexDirection: 'row',
     borderBottomWidth: 1,
     marginHorizontal: 16,
     marginBottom: 12,
   },
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 10,
-  },
-  tabText: {
-    fontSize: 14,
-    opacity: 0.6,
-  },
-  tabContent: {
-    flex: 1,
-    paddingHorizontal: 16,
-  },
+  tab: { flex: 1, alignItems: 'center', paddingVertical: 10 },
+  tabText: { fontSize: 14, opacity: 0.6 },
+  tabContent: { flex: 1, paddingHorizontal: 16 },
   createTaskBtn: {
     flexDirection: 'row',
     paddingVertical: 12,
@@ -547,10 +550,7 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 12,
   },
-  createTaskBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
+  createTaskBtnText: { color: '#fff', fontWeight: 'bold' },
   taskCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -561,88 +561,23 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     gap: 12,
   },
-  taskIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  taskTitle: {
-    fontSize: 15,
-    marginBottom: 4,
-  },
-  taskDesc: {
-    fontSize: 13,
-    opacity: 0.6,
-    marginBottom: 6,
-  },
-  taskMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  metaText: {
-    fontSize: 11,
-    opacity: 0.6,
-  },
-  metaDot: {
-    width: 2,
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: 'rgba(0,0,0,0.2)',
-    marginHorizontal: 4,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  emptyText: {
-    marginTop: 12,
-    opacity: 0.6,
-  },
-  // Anuncios
-  anunciosList: {
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-    gap: 12,
-  },
-  anuncioCard: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
-    maxWidth: '85%',
-    alignSelf: 'flex-start',
-  },
-  anuncioHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  anuncioAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  anuncioAvatarText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  anuncioAutor: {
-    fontSize: 13,
-  },
-  anuncioFecha: {
-    fontSize: 11,
-    opacity: 0.5,
-  },
-  anuncioContenido: {
-    fontSize: 14,
-    lineHeight: 20,
-  },
+  taskIcon: { width: 44, height: 44, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
+  taskTitle: { fontSize: 15, marginBottom: 4 },
+  taskDesc: { fontSize: 13, opacity: 0.6, marginBottom: 6 },
+  taskMeta: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  metaText: { fontSize: 11, opacity: 0.6 },
+  metaDot: { width: 2, height: 2, borderRadius: 1, backgroundColor: 'rgba(0,0,0,0.2)', marginHorizontal: 4 },
+  emptyContainer: { alignItems: 'center', paddingVertical: 40 },
+  emptyText: { marginTop: 12, opacity: 0.6 },
+  anunciosList: { paddingHorizontal: 16, paddingBottom: 8, gap: 12 },
+  anuncioCard: { borderWidth: 1, borderRadius: 12, padding: 14 },
+  anuncioHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 },
+  anuncioAvatar: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center' },
+  anuncioAvatarText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
+  anuncioAutor: { fontSize: 13 },
+  anuncioFecha: { fontSize: 11, opacity: 0.5, marginTop: 1 },
+  anuncioContenido: { fontSize: 14, lineHeight: 20 },
+  deleteBtn: { padding: 6 },
   inputAnuncioContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -660,24 +595,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     maxHeight: 100,
   },
-  sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  // Modal
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '90%',
-    paddingTop: 20,
-  },
+  sendBtn: { width: 40, height: 40, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
+  modalContainer: { flex: 1, justifyContent: 'flex-end' },
+  modalContent: { borderTopLeftRadius: 20, borderTopRightRadius: 20, maxHeight: '90%', paddingTop: 20 },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -685,30 +605,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 20,
   },
-  modalForm: {
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-  },
-  label: {
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 12,
-  },
-  createBtn: {
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 20,
-  },
-  createBtnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
+  modalForm: { paddingHorizontal: 20, paddingBottom: 30 },
+  label: { marginTop: 16, marginBottom: 8 },
+  input: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10, marginBottom: 12 },
+  createBtn: { paddingVertical: 12, borderRadius: 8, alignItems: 'center', marginTop: 20, marginBottom: 20 },
+  createBtnText: { color: '#fff', fontWeight: 'bold' },
 });
