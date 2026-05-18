@@ -8,7 +8,7 @@ export default function ExploreScreen() {
     {
       icon: 'book.fill',
       titulo: 'Sobre MaxGrade',
-      texto: 'Una aplicación minimalista para gestionar clases, crear tus propias clases y unirte a otras usando códigos de 6 caracteres.',
+      texto: 'La plataforma ideal para gestionar tus tareas escolares, recibir notificaciones personalizadas y conectar con tu grupo :)',
       color: ['#32c4b8', '#32e880'] as [string, string],
     },
     {

@@ -35,7 +35,6 @@ export function JoinClassScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container}>
 
-          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
               <IconSymbol name="xmark" size={18} color="#32a4b8" />
@@ -43,7 +42,6 @@ export function JoinClassScreen() {
             <ThemedText style={styles.title}>Unirse a Clase</ThemedText>
           </View>
 
-          {/* Icono */}
           <View style={styles.iconContainer}>
             <LinearGradient
               colors={['#32c4b8', '#32e880']}
@@ -55,7 +53,6 @@ export function JoinClassScreen() {
             <ThemedText style={styles.iconSubtitle}>El código tiene 6 caracteres (letras y números)</ThemedText>
           </View>
 
-          {/* Input visual por letras */}
           <View style={styles.codigosContainer}>
             {letras.map((letra, i) => (
               <View key={i} style={[styles.letraBox, letra.trim() !== '' && styles.letraBoxFilled]}>
@@ -64,7 +61,6 @@ export function JoinClassScreen() {
             ))}
           </View>
 
-          {/* Input real oculto visualmente pero funcional */}
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
@@ -116,7 +112,6 @@ const styles = StyleSheet.create({
   iconTitle: { fontSize: 16, fontWeight: '600', color: '#1a3a4a', marginBottom: 6 },
   iconSubtitle: { color: '#7a9aaa', fontSize: 13, textAlign: 'center' },
 
-  // Cajas visuales por letra
   codigosContainer: {
     flexDirection: 'row', justifyContent: 'center', gap: 10, marginBottom: 20,
   },
@@ -129,7 +124,6 @@ const styles = StyleSheet.create({
   letraBoxFilled: { borderColor: '#32a4b8', backgroundColor: '#e0f7fa' },
   letraText: { fontSize: 22, fontWeight: 'bold', color: '#1a3a4a' },
 
-  // Input funcional debajo de las cajas
   inputWrapper: {
     backgroundColor: 'rgba(255,255,255,0.85)',
     borderWidth: 1.5, borderColor: '#d0eaf2',

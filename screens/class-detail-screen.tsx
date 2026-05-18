@@ -175,7 +175,6 @@ export function ClassDetailScreen() {
 
   return (
     <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
-      {/* Header con gradiente */}
       <LinearGradient
         colors={['#32c4d8', '#32e880']}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
@@ -189,7 +188,6 @@ export function ClassDetailScreen() {
         </View>
       </LinearGradient>
 
-      {/* Info Bar */}
       <View style={styles.infoBar}>
         <View style={styles.infoItem}>
           <IconSymbol name="doc.text.fill" size={15} color="#32a4b8" />
@@ -207,7 +205,6 @@ export function ClassDetailScreen() {
         )}
       </View>
 
-      {/* Descripción */}
       {clase.descripcion ? (
         <View style={styles.descContainer}>
           <ThemedText style={styles.descTitle}>Descripción</ThemedText>
@@ -215,7 +212,6 @@ export function ClassDetailScreen() {
         </View>
       ) : null}
 
-      {/* Tabs */}
       <View style={styles.tabsContainer}>
         <TouchableOpacity
           style={[styles.tab, tabActivo === 'tareas' && styles.tabActive]}
@@ -233,7 +229,6 @@ export function ClassDetailScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Tab Tareas */}
       {tabActivo === 'tareas' ? (
         <View style={styles.tabContent}>
           {esProfesor && (
@@ -283,7 +278,6 @@ export function ClassDetailScreen() {
           )}
         </View>
       ) : (
-        /* Tab Anuncios */
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -362,7 +356,6 @@ export function ClassDetailScreen() {
         </KeyboardAvoidingView>
       )}
 
-      {/* Modal crear tarea */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -434,7 +427,6 @@ export function ClassDetailScreen() {
 const styles = StyleSheet.create({
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
-  // Header
   header: {
     flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 16, paddingTop: 52, paddingBottom: 20, gap: 12,
@@ -447,7 +439,6 @@ const styles = StyleSheet.create({
   claseName: { fontSize: 20, fontWeight: 'bold', color: '#fff' },
   classCode: { fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
 
-  // Info Bar
   infoBar: {
     flexDirection: 'row', marginHorizontal: 16, marginVertical: 12,
     backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: 14,
@@ -457,7 +448,6 @@ const styles = StyleSheet.create({
   infoItem: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   infoText: { fontSize: 12, fontWeight: '500', color: '#1a3a4a' },
 
-  // Desc
   descContainer: {
     marginHorizontal: 16, marginBottom: 12,
     backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: 14,
@@ -466,7 +456,6 @@ const styles = StyleSheet.create({
   descTitle: { fontSize: 13, fontWeight: '600', color: '#32a4b8', marginBottom: 6 },
   descText: { fontSize: 14, color: '#1a3a4a', lineHeight: 20 },
 
-  // Tabs
   tabsContainer: {
     flexDirection: 'row', marginHorizontal: 16, marginBottom: 12,
     backgroundColor: 'rgba(255,255,255,0.6)', borderRadius: 12,
@@ -478,7 +467,6 @@ const styles = StyleSheet.create({
   tabTextActive: { color: '#32a4b8', fontWeight: '700' },
   tabContent: { flex: 1, paddingHorizontal: 16 },
 
-  // Crear tarea btn
   createTaskGradient: { borderRadius: 12, marginBottom: 12 },
   createTaskBtn: {
     flexDirection: 'row', alignItems: 'center',
@@ -486,7 +474,6 @@ const styles = StyleSheet.create({
   },
   createTaskBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
 
-  // Task card
   taskCard: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.85)',
@@ -505,11 +492,9 @@ const styles = StyleSheet.create({
   metaText: { fontSize: 11, color: '#7a9aaa' },
   metaDot: { width: 3, height: 3, borderRadius: 2, backgroundColor: '#d0eaf2', marginHorizontal: 4 },
 
-  // Empty
   emptyContainer: { alignItems: 'center', paddingVertical: 40 },
   emptyText: { marginTop: 12, color: '#7a9aaa', fontSize: 15 },
 
-  // Anuncios
   anunciosList: { paddingHorizontal: 16, paddingBottom: 8, gap: 12 },
   anuncioCard: {
     backgroundColor: 'rgba(255,255,255,0.85)', borderRadius: 16,
@@ -525,7 +510,6 @@ const styles = StyleSheet.create({
   anuncioContenido: { fontSize: 14, color: '#1a3a4a', lineHeight: 20 },
   deleteBtn: { padding: 6 },
 
-  // Input anuncio
   inputAnuncioContainer: {
     flexDirection: 'row', alignItems: 'flex-end',
     paddingHorizontal: 16, paddingVertical: 10,
@@ -541,7 +525,6 @@ const styles = StyleSheet.create({
   sendBtnGradient: { width: 42, height: 42, borderRadius: 21 },
   sendBtn: { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center' },
 
-  // Modal
   modalContainer: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' },
   modalContent: {
     backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,

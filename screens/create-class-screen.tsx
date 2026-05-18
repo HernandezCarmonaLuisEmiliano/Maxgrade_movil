@@ -33,7 +33,6 @@ export function CreateClassScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container}>
 
-          {/* Header */}
           <View style={styles.header}>
             <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
               <IconSymbol name="xmark" size={18} color="#32a4b8" />
@@ -41,7 +40,6 @@ export function CreateClassScreen() {
             <ThemedText style={styles.title}>Crear Clase</ThemedText>
           </View>
 
-          {/* Icono decorativo */}
           <View style={styles.iconContainer}>
             <LinearGradient
               colors={['#32c4b8', '#32e880']}
@@ -52,7 +50,6 @@ export function CreateClassScreen() {
             <ThemedText style={styles.iconSubtitle}>Nueva clase para tus estudiantes</ThemedText>
           </View>
 
-          {/* Form */}
           <View style={styles.form}>
             <ThemedText style={styles.label}>NOMBRE DE LA CLASE</ThemedText>
             <View style={styles.inputWrapper}>

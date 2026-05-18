@@ -182,7 +182,6 @@ export function TaskDetailScreen() {
 
   return (
     <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
-      {/* Header */}
       <LinearGradient
         colors={['#32c4d8', '#32e880']}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
@@ -194,7 +193,6 @@ export function TaskDetailScreen() {
       </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Info Card */}
         <View style={styles.infoCard}>
           <View style={styles.infoRow}>
             <View style={styles.infoIconBox}>
@@ -219,7 +217,6 @@ export function TaskDetailScreen() {
           </View>
         </View>
 
-        {/* Descripción */}
         <View style={styles.section}>
           <ThemedText style={styles.sectionTitle}>Descripción</ThemedText>
           <ThemedText style={styles.description}>
@@ -227,10 +224,8 @@ export function TaskDetailScreen() {
           </ThemedText>
         </View>
 
-        {/* ALUMNO VIEW */}
         {!esProfesor && (
           <>
-            {/* Estado */}
             {entrega && (
               <View style={[styles.statusCard, {
                 backgroundColor: getEstadoColor(entrega.estado) + '20',
@@ -261,7 +256,6 @@ export function TaskDetailScreen() {
               </View>
             )}
 
-            {/* Acciones Alumno */}
             <View style={styles.actionsContainer}>
               {!entrega || entrega.estado === 'pendiente' ? (
                 <LinearGradient
@@ -311,7 +305,6 @@ export function TaskDetailScreen() {
               )}
             </View>
 
-            {/* Comentarios */}
             {entrega && (
               <View style={styles.commentsSection}>
                 <ThemedText style={styles.sectionTitle}>Comentarios</ThemedText>
@@ -359,7 +352,6 @@ export function TaskDetailScreen() {
           </>
         )}
 
-        {/* PROFESOR VIEW */}
         {esProfesor && (
           <View style={styles.teacherSection}>
             <ThemedText style={styles.sectionTitle}>Entregas de Estudiantes</ThemedText>
@@ -376,7 +368,6 @@ export function TaskDetailScreen() {
         )}
       </ScrollView>
 
-      {/* Modal Comentario */}
       <Modal visible={mostrarComentario} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
@@ -413,7 +404,6 @@ export function TaskDetailScreen() {
         </View>
       </Modal>
 
-      {/* Modal Calificar */}
       <Modal visible={mostrarCalificar} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>

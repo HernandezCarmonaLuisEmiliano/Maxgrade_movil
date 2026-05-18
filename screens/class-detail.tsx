@@ -28,18 +28,15 @@ export default function ClassDetailScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const { user } = useAuth();
 
-  // Parámetros que se reciben al presionar la clase en la lista
   const { id, nombre_clase, descripcion } = useLocalSearchParams<{
     id: string;
     nombre_clase: string;
     descripcion: string;
   }>();
 
-  // Estados de control de Rol e Interfaz
   const [esProfesor, setEsProfesor] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // Estados del Muro (Anuncios + Tareas)
   const [anuncios, setAnuncios] = useState<any[]>([]);
   const [tareas, setTareas] = useState<any[]>([]);
   const [entregas, setEntregas] = useState<any[]>([]);
@@ -61,7 +58,6 @@ export default function ClassDetailScreen() {
   const verificarRolYDatos = async () => {
     setLoading(true);
     try {
-      // 1. Detectar el rol consultando si el usuario actual es el dueño (profesor) de la clase
       const { data: claseData, error: claseError } = await supabase
         .from('clases')
         .select('profesor_id')
@@ -69,12 +65,10 @@ export default function ClassDetailScreen() {
         .single();
 
       if (!claseError && claseData) {
-        // Si el id del usuario autenticado coincide con profesor_id, es maestro
         const maestro = claseData.profesor_id === user.id;
         setEsProfesor(maestro);
       }
 
-      // 2. Cargar el resto de la información en paralelo
       await Promise.all([cargarTareas(), cargarAnuncios(), cargarMisEntregas()]);
     } catch (err) {
       console.error('Error al inicializar la clase:', err);
@@ -166,7 +160,6 @@ export default function ClassDetailScreen() {
     }
   };
 
-  // Une y ordena de manera cronológica inversa para el feed del muro
   const datosMuro = [
     ...anuncios.map((a) => ({ ...a, tipoItem: 'anuncio' })),
     ...tareas.map((t) => ({ ...t, tipoItem: 'tarea' })),
@@ -221,7 +214,6 @@ export default function ClassDetailScreen() {
           <ThemedText style={styles.tareaFecha}>Nueva tarea asignada</ThemedText>
         </View>
 
-        {/* Muestra insignias dinámicas según si eres Maestro o Alumno */}
         {esProfesor ? (
           <View style={[styles.statusBadge, { backgroundColor: colors.tint + '15' }]}>
             <ThemedText style={{ color: colors.tint, fontSize: 11, fontWeight: 'bold' }}>

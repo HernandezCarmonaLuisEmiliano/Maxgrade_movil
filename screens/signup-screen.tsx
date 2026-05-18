@@ -51,12 +51,11 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.card}>
-            {/* Logo */}
             <View style={styles.logoContainer}>
               <Image
-  source={require('../assets/images/LogoPng.png')}
-  style={styles.logoImage}
-  resizeMode="contain"
+                source={require('../assets/images/LogoPng.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
 />
               <ThemedText style={styles.brand}>
                 <ThemedText style={styles.brandMax}>Max</ThemedText>
@@ -65,9 +64,7 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
               <ThemedText style={styles.subtitle}>Crea tu cuenta</ThemedText>
             </View>
 
-            {/* Form */}
             <View style={styles.form}>
-              {/* Nombre y Apellido en fila */}
               <View style={styles.row}>
                 <View style={[styles.inputWrapper, { flex: 1, marginRight: 8 }]}>
                   <IconSymbol name="person" size={18} color="#32a4b8" style={{ marginRight: 8 }} />
@@ -192,7 +189,7 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 4 },
   footerText: { color: '#7a9aaa', fontSize: 14 },
   footerLink: { color: '#32a4b8', fontSize: 14, fontWeight: 'bold' },
-  logoImage: {        // 👈 agrega esto
+  logoImage: {        
     width: 90,
     height: 90,
     marginBottom: 14,

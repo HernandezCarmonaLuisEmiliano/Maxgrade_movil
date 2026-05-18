@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -46,15 +47,12 @@ export function LoginScreen({ onSignUp }: LoginScreenProps) {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.card}>
-            {/* Logo */}
             <View style={styles.logoContainer}>
-              <LinearGradient
-                colors={['#32c4b8', '#32e880']}
-                style={styles.logoBox}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}>
-                <ThemedText style={styles.logoLetter}>M</ThemedText>
-              </LinearGradient>
+              <Image
+                source={require('../assets/images/LogoPng.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
               <ThemedText style={styles.brand}>
                 <ThemedText style={styles.brandMax}>Max</ThemedText>
                 <ThemedText style={styles.brandGrade}>Grade</ThemedText>
@@ -62,7 +60,6 @@ export function LoginScreen({ onSignUp }: LoginScreenProps) {
               <ThemedText style={styles.subtitle}>Inicia sesión en tu cuenta</ThemedText>
             </View>
 
-            {/* Form */}
             <View style={styles.form}>
               <ThemedText style={styles.label}>CORREO ELECTRÓNICO</ThemedText>
               <View style={styles.inputWrapper}>
@@ -160,4 +157,9 @@ const styles = StyleSheet.create({
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 4 },
   footerText: { color: '#7a9aaa', fontSize: 14 },
   footerLink: { color: '#32a4b8', fontSize: 14, fontWeight: 'bold' },
+  logoImage: {        
+    width: 90,
+    height: 90,
+    marginBottom: 14,
+  },
 });

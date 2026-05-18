@@ -108,7 +108,6 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
 
   return (
     <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
-      {/* Header */}
       <View style={styles.header}>
         <View>
           <ThemedText style={styles.headerTitle}>Mis Clases</ThemedText>
@@ -129,7 +128,6 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
         </TouchableOpacity>
       </View>
 
-      {/* Action Buttons */}
       <View style={styles.buttonsContainer}>
         <LinearGradient
           colors={['#32c4d8', '#32e880']}
@@ -150,7 +148,6 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
         </TouchableOpacity>
       </View>
 
-      {/* Classes List */}
       {loading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color="#32a4b8" />
@@ -172,14 +169,12 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
         />
       )}
 
-      {/* Drawer */}
       <Modal visible={drawerVisible} transparent animationType="none">
         <TouchableWithoutFeedback onPress={() => setDrawerVisible(false)}>
           <View style={styles.drawerOverlay} />
         </TouchableWithoutFeedback>
 
         <View style={styles.drawer}>
-          {/* Perfil */}
           <LinearGradient
             colors={['#e0f7fa', '#f0fff4']}
             style={styles.drawerProfile}>
@@ -200,7 +195,6 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
             </View>
           </LinearGradient>
 
-          {/* Hora de recordatorio */}
           <View style={styles.drawerSection}>
             <View style={styles.drawerSectionHeader}>
               <IconSymbol name="bell.fill" size={16} color="#32a4b8" />
@@ -238,7 +232,6 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
             )}
           </View>
 
-          {/* Cerrar sesión */}
           <TouchableOpacity style={styles.logoutItem} onPress={handleLogout}>
             <IconSymbol name="power" size={18} color="#ef4444" />
             <ThemedText style={styles.logoutText}>Cerrar sesión</ThemedText>
@@ -250,7 +243,7 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
 }
 
 const styles = StyleSheet.create({
-  // Header
+  // Comosuicidarsebuscar
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -267,7 +260,6 @@ const styles = StyleSheet.create({
   },
   profileInitial: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
 
-  // Buttons
   buttonsContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
@@ -286,7 +278,6 @@ const styles = StyleSheet.create({
   },
   actionButtonOutlineText: { color: '#32a4b8', fontWeight: 'bold', fontSize: 14 },
 
-  // List
   listContainer: { paddingHorizontal: 20, paddingBottom: 24 },
   cardContainer: {
     backgroundColor: 'rgba(255,255,255,0.85)',
@@ -300,13 +291,11 @@ const styles = StyleSheet.create({
   cardDesc: { fontSize: 13, color: '#7a9aaa', marginBottom: 6 },
   cardCode: { fontSize: 12, color: '#32a4b8' },
 
-  // Empty / Loader
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
   emptyText: { fontSize: 18, fontWeight: 'bold', color: '#1a3a4a', marginTop: 16 },
   emptySubtext: { fontSize: 14, color: '#7a9aaa', marginTop: 8, textAlign: 'center' },
 
-  // Drawer
   drawerOverlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.3)',
