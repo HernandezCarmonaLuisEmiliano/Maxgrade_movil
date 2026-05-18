@@ -44,7 +44,7 @@ export function usePushNotifications() {
     }
 
     const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: 'TU_PROJECT_ID', // 👈 lo encuentras en app.json -> expo.extra.eas.projectId
+      projectId: '3c22fca9-254a-4c4b-9679-c7586a1af845', // 👈 lo encuentras en app.json -> expo.extra.eas.projectId
     });
 
     // Guardar en Supabase
