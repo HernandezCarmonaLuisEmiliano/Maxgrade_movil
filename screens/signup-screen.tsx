@@ -32,8 +32,8 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
       Alert.alert('Error', 'Por favor completa todos los campos');
       return;
     }
-    if (contraseña.length < 4) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 4 caracteres');
+    if (contraseña.length < 8) {
+      Alert.alert('Error', 'La contraseña debe tener al menos 8 caracteres');
       return;
     }
     setLoading(true);

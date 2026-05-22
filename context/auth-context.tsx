@@ -81,7 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // 2. Insertamos el nuevo renglón con los campos obligatorios y valores por defecto para MaxGrade
+      // 2. Insertamos el nuevo renglón con los campos obligatorios
       const { data: nuevosDatos, error } = await supabase
         .from('usuarios')
         .insert([
@@ -89,9 +89,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             nombre: nombre.trim(),
             apellido: apellido.trim(),
             email: correo.trim(),
-            password: contraseña.trim(), // Se guarda tal cual en tu columna password text
-            recordatorio_frecuencia: 'diaria', // Valor inicial para el sistema de tareas
-            recordatorio_intervalo_horas: 24,  // Cada cuántas horas recordar
+            password: contraseña.trim(),
+            recordatorio_frecuencia: 'diario',
+            recordatorio_intervalo_horas: 24,
           },
         ])
         .select() // Le pedimos a Supabase que nos devuelva el registro creado (incluyendo su ID autogenerado)

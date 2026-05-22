@@ -10,9 +10,10 @@ import {
   TouchableOpacity, View,
 } from 'react-native';
 
+
 export function CreateClassScreen() {
   const [nombre, setNombre] = useState('');
-  const [descripcion, setDescripcion] = useState('');
+  const [materia, setMateria] = useState('');
   const [loading, setLoading] = useState(false);
   const { crearClase } = useClases();
   const router = useRouter();
@@ -21,7 +22,7 @@ export function CreateClassScreen() {
     if (!nombre.trim()) { Alert.alert('Error', 'Por favor ingresa el nombre de la clase'); return; }
     setLoading(true);
     try {
-      const codigo = await crearClase(nombre, descripcion);
+      const codigo = await crearClase(nombre, materia);
       Alert.alert('Éxito', `Clase creada. Código: ${codigo}`, [{ text: 'OK', onPress: () => router.back() }]);
     } catch (error) {
       Alert.alert('Error', (error as Error).message);
@@ -65,15 +66,15 @@ export function CreateClassScreen() {
               />
             </View>
 
-            <ThemedText style={[styles.label, { marginTop: 16 }]}>DESCRIPCIÓN (OPCIONAL)</ThemedText>
+            <ThemedText style={[styles.label, { marginTop: 16 }]}>MATERIA (OPCIONAL)</ThemedText>
             <View style={[styles.inputWrapper, { alignItems: 'flex-start', paddingTop: 12 }]}>
               <IconSymbol name="text.alignleft" size={16} color="#32a4b8" style={{ marginRight: 10, marginTop: 2 }} />
               <TextInput
                 style={[styles.input, { minHeight: 90 }]}
-                placeholder="Añade una descripción de la clase..."
+                placeholder="Añade una materia..."
                 placeholderTextColor="#aac0cc"
-                value={descripcion}
-                onChangeText={setDescripcion}
+                value={materia}
+                onChangeText={setMateria}
                 editable={!loading}
                 multiline
                 textAlignVertical="top"

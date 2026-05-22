@@ -6,17 +6,17 @@ import { useAuth } from './auth-context';
 // 1. Limpiamos la interfaz removiendo por completo la propiedad 'miembros'
 export interface Clase {
   id: string;
-  codigo: string;
-  nombre: string;
-  descripcion: string;
-  creador: string;
+  codigo_acceso: string;
+  nombre_clase: string;
+  materia: string;
+  profesor_id: string;
   fecha_creacion?: string;
 }
 
 interface ClassContextType {
   clases: Clase[];
   loading: boolean;
-  crearClase: (nombre: string, descripcion: string) => Promise<string>;
+  crearClase: (nombre: string, materia: string) => Promise<string>;
   unirseClase: (codigo: string) => Promise<void>;
   salirClase: (claseId: string) => Promise<void>;
   obtenerMisClases: () => Promise<Clase[]>;
@@ -58,9 +58,9 @@ export function ClassProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      // Un usuario ve la clase si es el creador (profesor) o si está inscrito (alumno)
+      // Un usuario ve la clase si es el profesor o si está inscrito (alumno)
       const misClases = (data as Clase[]).filter(
-        (clase) => clase.creador === user.id || claseIds.includes(clase.id)
+        (clase) => clase.profesor_id === user.id || claseIds.includes(clase.id)
       );
 
       setClases(misClases);
@@ -81,7 +81,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
   };
 
   // CREAR CLASE
-  const crearClase = async (nombre: string, descripcion: string): Promise<string> => {
+  const crearClase = async (nombre: string, materia: string): Promise<string> => {
     try {
       if (!user) throw new Error('Usuario no autenticado');
 
@@ -91,8 +91,8 @@ export function ClassProvider({ children }: { children: ReactNode }) {
       while (codigoExistente) {
         const { data } = await supabase
           .from('clases')
-          .select('codigo')
-          .eq('codigo', codigo)
+          .select('codigo_acceso')
+          .eq('codigo_acceso', codigo)
           .maybeSingle();
         
         if (!data) {
@@ -107,10 +107,10 @@ export function ClassProvider({ children }: { children: ReactNode }) {
         .from('clases')
         .insert([
           {
-            codigo,
-            nombre: nombre.trim(),
-            descripcion: descripcion.trim(),
-            creador: user.id,
+            codigo_acceso: codigo,
+            nombre_clase: nombre.trim(),
+            materia: materia.trim(),
+            profesor_id: user.id,
           },
         ])
         .select()
@@ -138,14 +138,14 @@ export function ClassProvider({ children }: { children: ReactNode }) {
   };
 
   // UNIRSE A CLASE
-  const unirseClase = async (codigo: string) => {
+  const unirseClase = async (codigo_acceso: string) => {
     try {
       if (!user) throw new Error('Usuario no autenticado');
 
       const { data: clase, error: fetchError } = await supabase
         .from('clases')
         .select('*')
-        .eq('codigo', codigo.trim().toUpperCase())
+        .eq('codigo_acceso', codigo_acceso.trim().toUpperCase())
         .maybeSingle();
 
       if (fetchError || !clase) {
@@ -176,7 +176,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
       if (insertError) throw insertError;
 
       await cargarClases();
-      Alert.alert('Éxito', `Te has unido a: ${clase.nombre}`);
+      Alert.alert('Éxito', `Te has unido a: ${clase.nombre_clase}`);
 
     } catch (error: any) {
       Alert.alert('Error', error.message || 'No se pudo unir a la clase');
@@ -220,7 +220,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
       if (!data) return [];
 
       return (data as Clase[]).filter(
-        (clase) => clase.creador === user.id || claseIds.includes(clase.id)
+        (clase) => clase.profesor_id === user.id || claseIds.includes(clase.id)
       );
     } catch (error) {
       console.error('Error en obtenerMisClases:', error);

@@ -2,6 +2,7 @@ import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { supabase } from '@/config/supabase';
 import { useAuth } from '@/context/auth-context';
+import { useClases } from '@/context/class-context';
 import { useTareas } from '@/context/task-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -24,7 +25,6 @@ type ClaseReal = {
   id: string;
   nombre_clase: string;
   codigo_acceso: string;
-  descripcion?: string;
   materia?: string;
   profesor_id: string;
   color_tema?: string;
@@ -42,25 +42,36 @@ type Anuncio = {
   autor_nombre?: string;
 };
 
+type Miembro = {
+  id: string;
+  nombre: string;
+  apellido: string;
+  correo: string;
+  esProfesor: boolean;
+};
+
 export function ClassDetailScreen() {
   const router = useRouter();
   const { claseId } = useLocalSearchParams<{ claseId: string }>();
   const { user } = useAuth();
+  const { salirClase } = useClases();
   const { crearTarea } = useTareas();
 
   const [clase, setClase] = useState<ClaseReal | null>(null);
   const [tareasPorClase, setTareasPorClase] = useState<any[]>([]);
   const [anuncios, setAnuncios] = useState<Anuncio[]>([]);
+  const [miembros, setMiembros] = useState<Miembro[]>([]);
   const [miembrosCount, setMiembrosCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [esProfesor, setEsProfesor] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false); // menú de opciones del header
   const [nuevoTituloTarea, setNuevoTituloTarea] = useState('');
   const [nuevaDescripcion, setNuevaDescripcion] = useState('');
   const [nuevosPuntos, setNuevosPuntos] = useState('100');
   const [nuevaFecha, setNuevaFecha] = useState('');
   const [creando, setCreando] = useState(false);
-  const [tabActivo, setTabActivo] = useState<'tareas' | 'anuncios'>('tareas');
+  const [tabActivo, setTabActivo] = useState<'tareas' | 'anuncios' | 'miembros'>('tareas');
   const [nuevoAnuncio, setNuevoAnuncio] = useState('');
   const [enviandoAnuncio, setEnviandoAnuncio] = useState(false);
 
@@ -81,10 +92,37 @@ export function ClassDetailScreen() {
       const { data: inscritos } = await supabase.from('inscripciones').select('id').eq('clase_id', claseId);
       setMiembrosCount((inscritos || []).length);
       await cargarAnuncios();
+      await cargarMiembros(claseData.profesor_id);
     } catch (error) {
       console.error('Error cargando clase:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const cargarMiembros = async (profesorId?: string) => {
+    const idProfesor = profesorId ?? clase?.profesor_id;
+    try {
+      const { data, error } = await supabase
+        .from('inscripciones')
+        .select('usuarios(id, nombre, apellido, email)')
+        .eq('clase_id', claseId);
+      if (error) throw error;
+      const miembrosData = (data || []).map((item: any) => ({
+        id: item.usuarios.id,
+        nombre: item.usuarios.nombre,
+        apellido: item.usuarios.apellido,
+        correo: item.usuarios.email,
+        esProfesor: item.usuarios.id === idProfesor,
+      }));
+      miembrosData.sort((a: Miembro, b: Miembro) => {
+        if (a.esProfesor) return -1;
+        if (b.esProfesor) return 1;
+        return 0;
+      });
+      setMiembros(miembrosData);
+    } catch (error) {
+      console.error('Error cargando miembros:', error);
     }
   };
 
@@ -101,6 +139,65 @@ export function ClassDetailScreen() {
     } catch (error) {
       console.error('Error cargando anuncios:', error);
     }
+  };
+
+  const handleVerCodigo = () => {
+    setMenuVisible(false);
+    Alert.alert(
+      '🔑 Código de la clase',
+      clase?.codigo_acceso ?? '',
+      [{ text: 'Cerrar', style: 'cancel' }]
+    );
+  };
+
+  const handleSalirClase = () => {
+    setMenuVisible(false);
+    Alert.alert(
+      'Salir de la clase',
+      `¿Estás seguro que deseas salir de "${clase?.nombre_clase}"?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Salir',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await salirClase(claseId);
+              router.back();
+            } catch (error) {
+              Alert.alert('Error', 'No se pudo salir de la clase');
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const handleEliminarAlumno = (alumnoId: string, nombre: string) => {
+    Alert.alert(
+      'Eliminar alumno',
+      `¿Deseas eliminar a ${nombre} de la clase?`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await supabase
+              .from('inscripciones')
+              .delete()
+              .eq('clase_id', claseId)
+              .eq('estudiante_id', alumnoId);
+            if (error) {
+              Alert.alert('Error', 'No se pudo eliminar al alumno');
+            } else {
+              await cargarMiembros();
+              setMiembrosCount(prev => prev - 1);
+            }
+          },
+        },
+      ]
+    );
   };
 
   const handleEliminarAnuncio = (anuncioId: string) => {
@@ -175,6 +272,7 @@ export function ClassDetailScreen() {
 
   return (
     <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
+      {/* Header */}
       <LinearGradient
         colors={['#32c4d8', '#32e880']}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
@@ -186,6 +284,10 @@ export function ClassDetailScreen() {
           <ThemedText style={styles.claseName}>{clase.nombre_clase}</ThemedText>
           <ThemedText style={styles.classCode}>Código: {clase.codigo_acceso}</ThemedText>
         </View>
+        {/* Botón de opciones */}
+        <TouchableOpacity style={styles.menuBtn} onPress={() => setMenuVisible(true)}>
+          <IconSymbol name="ellipsis" size={22} color="#fff" />
+        </TouchableOpacity>
       </LinearGradient>
 
       <View style={styles.infoBar}>
@@ -205,10 +307,10 @@ export function ClassDetailScreen() {
         )}
       </View>
 
-      {clase.descripcion ? (
+      {clase.materia ? (
         <View style={styles.descContainer}>
-          <ThemedText style={styles.descTitle}>Descripción</ThemedText>
-          <ThemedText style={styles.descText}>{clase.descripcion}</ThemedText>
+          <ThemedText style={styles.descTitle}>Materia</ThemedText>
+          <ThemedText style={styles.descText}>{clase.materia}</ThemedText>
         </View>
       ) : null}
 
@@ -216,19 +318,21 @@ export function ClassDetailScreen() {
         <TouchableOpacity
           style={[styles.tab, tabActivo === 'tareas' && styles.tabActive]}
           onPress={() => setTabActivo('tareas')}>
-          <ThemedText style={[styles.tabText, tabActivo === 'tareas' && styles.tabTextActive]}>
-            Tareas
-          </ThemedText>
+          <ThemedText style={[styles.tabText, tabActivo === 'tareas' && styles.tabTextActive]}>Tareas</ThemedText>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, tabActivo === 'miembros' && styles.tabActive]}
+          onPress={() => setTabActivo('miembros')}>
+          <ThemedText style={[styles.tabText, tabActivo === 'miembros' && styles.tabTextActive]}>Miembros</ThemedText>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, tabActivo === 'anuncios' && styles.tabActive]}
           onPress={() => setTabActivo('anuncios')}>
-          <ThemedText style={[styles.tabText, tabActivo === 'anuncios' && styles.tabTextActive]}>
-            Anuncios
-          </ThemedText>
+          <ThemedText style={[styles.tabText, tabActivo === 'anuncios' && styles.tabTextActive]}>Anuncios</ThemedText>
         </TouchableOpacity>
       </View>
 
+      {/* ── TAB TAREAS ── */}
       {tabActivo === 'tareas' ? (
         <View style={styles.tabContent}>
           {esProfesor && (
@@ -277,7 +381,81 @@ export function ClassDetailScreen() {
             />
           )}
         </View>
+
+      ) : tabActivo === 'miembros' ? (
+        /* ── TAB MIEMBROS ── */
+        <View style={styles.tabContent}>
+          {miembros.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <IconSymbol name="person" size={48} color="#32a4b840" />
+              <ThemedText style={styles.emptyText}>No hay miembros aún</ThemedText>
+            </View>
+          ) : (
+            <ScrollView scrollEnabled nestedScrollEnabled>
+              {miembros.filter(m => m.esProfesor).length > 0 && (
+                <>
+                  <View style={styles.sectionHeader}>
+                    <View style={styles.sectionLine} />
+                    <ThemedText style={styles.sectionTitle}>Profesor</ThemedText>
+                    <View style={styles.sectionLine} />
+                  </View>
+                  {miembros.filter(m => m.esProfesor).map((item) => (
+                    <View key={item.id} style={[styles.miembroCard, styles.miembroCardProfesor]}>
+                      <LinearGradient
+                        colors={['#ff6b6b', '#ee5a6f']}
+                        style={styles.miembroAvatar}
+                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                        <ThemedText style={styles.miembroAvatarText}>
+                          {(item.nombre?.[0] ?? 'U').toUpperCase()}
+                        </ThemedText>
+                      </LinearGradient>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText style={styles.miembroNombre}>{item.nombre} {item.apellido}</ThemedText>
+                        <ThemedText style={styles.miembroCorreo}>{item.correo}</ThemedText>
+                      </View>
+                      <IconSymbol name="star.fill" size={16} color="#ff6b6b" />
+                    </View>
+                  ))}
+                </>
+              )}
+              {miembros.filter(m => !m.esProfesor).length > 0 && (
+                <>
+                  <View style={styles.sectionHeader}>
+                    <View style={styles.sectionLine} />
+                    <ThemedText style={styles.sectionTitle}>Alumnos</ThemedText>
+                    <View style={styles.sectionLine} />
+                  </View>
+                  {miembros.filter(m => !m.esProfesor).map((item) => (
+                    <View key={item.id} style={styles.miembroCard}>
+                      <LinearGradient
+                        colors={['#32c4b8', '#32e880']}
+                        style={styles.miembroAvatar}
+                        start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                        <ThemedText style={styles.miembroAvatarText}>
+                          {(item.nombre?.[0] ?? 'U').toUpperCase()}
+                        </ThemedText>
+                      </LinearGradient>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText style={styles.miembroNombre}>{item.nombre} {item.apellido}</ThemedText>
+                        <ThemedText style={styles.miembroCorreo}>{item.correo}</ThemedText>
+                      </View>
+                      {esProfesor && (
+                        <TouchableOpacity
+                          style={styles.deleteBtn}
+                          onPress={() => handleEliminarAlumno(item.id, `${item.nombre} ${item.apellido}`)}>
+                          <IconSymbol name="person.badge.minus" size={18} color="#ef4444" />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  ))}
+                </>
+              )}
+            </ScrollView>
+          )}
+        </View>
+
       ) : (
+        /* ── TAB ANUNCIOS ── */
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -329,7 +507,6 @@ export function ClassDetailScreen() {
               );
             }}
           />
-
           <View style={styles.inputAnuncioContainer}>
             <TextInput
               style={styles.inputAnuncio}
@@ -356,6 +533,7 @@ export function ClassDetailScreen() {
         </KeyboardAvoidingView>
       )}
 
+      {/* ── MODAL CREAR TAREA ── */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -368,7 +546,6 @@ export function ClassDetailScreen() {
                 <IconSymbol name="xmark" size={22} color="#fff" />
               </TouchableOpacity>
             </LinearGradient>
-
             <ScrollView style={styles.modalForm}>
               <ThemedText style={styles.label}>Título *</ThemedText>
               <View style={styles.inputWrapper}>
@@ -380,7 +557,6 @@ export function ClassDetailScreen() {
                   onChangeText={setNuevoTituloTarea}
                 />
               </View>
-
               <ThemedText style={styles.label}>Descripción</ThemedText>
               <View style={styles.inputWrapper}>
                 <TextInput
@@ -393,7 +569,6 @@ export function ClassDetailScreen() {
                   textAlignVertical="top"
                 />
               </View>
-
               <ThemedText style={styles.label}>Puntos Máximos</ThemedText>
               <View style={styles.inputWrapper}>
                 <TextInput
@@ -405,7 +580,6 @@ export function ClassDetailScreen() {
                   keyboardType="numeric"
                 />
               </View>
-
               <LinearGradient
                 colors={['#32c4d8', '#32e880']}
                 start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
@@ -420,6 +594,43 @@ export function ClassDetailScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* ── MODAL MENÚ DE OPCIONES ── */}
+      <Modal visible={menuVisible} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.menuOverlay}
+          activeOpacity={1}
+          onPress={() => setMenuVisible(false)}>
+          <View style={styles.menuCard}>
+            {/* Ver código */}
+            <TouchableOpacity style={styles.menuItem} onPress={handleVerCodigo}>
+              <View style={[styles.menuItemIcon, { backgroundColor: '#e0f7fa' }]}>
+                <IconSymbol name="key.fill" size={18} color="#32a4b8" />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={styles.menuItemTitle}>Código de la clase</ThemedText>
+                <ThemedText style={styles.menuItemSub}>{clase.codigo_acceso}</ThemedText>
+              </View>
+              <IconSymbol name="doc.on.doc" size={16} color="#32a4b8" />
+            </TouchableOpacity>
+
+            <View style={styles.menuDivider} />
+
+            {/* Salir de la clase — solo si NO es el profesor */}
+            {!esProfesor && (
+              <TouchableOpacity style={styles.menuItem} onPress={handleSalirClase}>
+                <View style={[styles.menuItemIcon, { backgroundColor: '#fff0f0' }]}>
+                  <IconSymbol name="rectangle.portrait.and.arrow.right" size={18} color="#ef4444" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={[styles.menuItemTitle, { color: '#ef4444' }]}>Salir de la clase</ThemedText>
+                  <ThemedText style={styles.menuItemSub}>Dejarás de ver esta clase</ThemedText>
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </LinearGradient>
   );
 }
@@ -432,6 +643,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingTop: 52, paddingBottom: 20, gap: 12,
   },
   backBtn: {
+    width: 40, height: 40, borderRadius: 20,
+    justifyContent: 'center', alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.25)',
+  },
+  menuBtn: {
     width: 40, height: 40, borderRadius: 20,
     justifyContent: 'center', alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.25)',
@@ -544,4 +760,62 @@ const styles = StyleSheet.create({
   createBtnGradient: { borderRadius: 14, marginTop: 24, marginBottom: 20 },
   createBtn: { height: 52, justifyContent: 'center', alignItems: 'center' },
   createBtnText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+
+  miembroCard: {
+    flexDirection: 'row', alignItems: 'center',
+    marginHorizontal: 12, marginVertical: 8, paddingVertical: 12, paddingHorizontal: 12,
+    backgroundColor: 'rgba(255,255,255,0.8)', borderRadius: 12,
+    borderWidth: 1, borderColor: '#d0eaf2',
+  },
+  miembroCardProfesor: {
+    backgroundColor: 'rgba(255, 107, 107, 0.08)', borderColor: '#ff6b6b',
+  },
+  miembroAvatar: {
+    width: 44, height: 44, borderRadius: 22,
+    justifyContent: 'center', alignItems: 'center', marginRight: 12,
+  },
+  miembroAvatarText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  miembroNombre: { fontSize: 15, fontWeight: '600', color: '#1a3a4a' },
+  miembroCorreo: { fontSize: 12, color: '#7a9aaa', marginTop: 4 },
+  sectionHeader: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    marginHorizontal: 12, marginVertical: 16, gap: 12,
+  },
+  sectionLine: { flex: 1, height: 1.5, backgroundColor: '#32a4b8' },
+  sectionTitle: { fontSize: 16, fontWeight: '700', color: '#32a4b8', paddingHorizontal: 8, letterSpacing: 0.5 },
+
+  // Menú de opciones
+  menuOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    paddingTop: 110,
+    paddingRight: 16,
+  },
+  menuCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    minWidth: 240,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+    overflow: 'hidden',
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    gap: 12,
+  },
+  menuItemIcon: {
+    width: 36, height: 36, borderRadius: 10,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  menuItemTitle: { fontSize: 15, fontWeight: '600', color: '#1a3a4a' },
+  menuItemSub: { fontSize: 12, color: '#7a9aaa', marginTop: 2 },
+  menuDivider: { height: 1, backgroundColor: '#f0f4f6', marginHorizontal: 16 },
 });

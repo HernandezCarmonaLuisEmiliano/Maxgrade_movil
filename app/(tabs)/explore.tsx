@@ -1,9 +1,37 @@
 import { ThemedText } from '@/components/themed-text';
 import { IconSymbol } from '@/components/ui/icon-symbol';
+import { supabase } from '@/config/supabase';
+import { useAuth } from '@/context/auth-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+
+const TIPOS_PROBLEMA = [
+  'Problemas de cuenta y acceso',
+  'Falla en la carga de datos/archivos',
+  'No recibo notificaciones',
+  'Errores de interfaz',
+  'Sugerencia de mejora/comentarios',
+  'Otro',
+];
 
 export default function ExploreScreen() {
+  const { user } = useAuth();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [tipoSeleccionado, setTipoSeleccionado] = useState('');
+  const [descripcion, setDescripcion] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+
   const secciones = [
     {
       icon: 'book.fill',
@@ -24,12 +52,51 @@ export default function ExploreScreen() {
       color: ['#32c4d8', '#32e880'] as [string, string],
     },
     {
-      icon: 'power',
-      titulo: 'Cerrar Sesión',
-      texto: 'Toca tu avatar en la esquina superior derecha de la pantalla de clases para abrir el menú y cerrar sesión.',
+      icon: 'bell.fill',
+      titulo: 'Recordatorios',
+      texto: 'Toca tu avatar en la esquina superior derecha de la pantalla de clases para configurar la hora en que recibirás recordatorios de tareas pendientes.',
       color: ['#32a4b8', '#32c4d8'] as [string, string],
     },
   ];
+
+  const handleEnviarReporte = async () => {
+    if (!tipoSeleccionado) {
+      Alert.alert('Error', 'Selecciona el tipo de problema');
+      return;
+    }
+    if (!descripcion.trim()) {
+      Alert.alert('Error', 'Escribe una descripción del problema');
+      return;
+    }
+
+    setEnviando(true);
+    try {
+      const { error } = await supabase.from('reportes_soporte').insert({
+        usuario_id: user?.id,
+        tipo_problema: tipoSeleccionado,
+        descripcion: descripcion.trim(),
+        estado: 'pendiente',
+      });
+
+      if (error) throw error;
+
+      setTipoSeleccionado('');
+      setDescripcion('');
+      setModalVisible(false);
+      Alert.alert('✓ Enviado', 'Tu reporte fue enviado. Lo revisaremos pronto.');
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo enviar el reporte. Intenta de nuevo.');
+    } finally {
+      setEnviando(false);
+    }
+  };
+
+  const handleCancelar = () => {
+    setTipoSeleccionado('');
+    setDescripcion('');
+    setDropdownVisible(false);
+    setModalVisible(false);
+  };
 
   return (
     <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
@@ -38,8 +105,17 @@ export default function ExploreScreen() {
         colors={['#32c4d8', '#32e880']}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
         style={styles.header}>
-        <ThemedText style={styles.headerTitle}>Ayuda</ThemedText>
-        <ThemedText style={styles.headerSubtitle}>Todo lo que necesitas saber</ThemedText>
+        <View style={{ flex: 1 }}>
+          <ThemedText style={styles.headerTitle}>Ayuda</ThemedText>
+          <ThemedText style={styles.headerSubtitle}>Todo lo que necesitas saber</ThemedText>
+        </View>
+        {/* Botón de soporte */}
+        <TouchableOpacity
+          style={styles.soporteBtn}
+          onPress={() => setModalVisible(true)}>
+          <IconSymbol name="questionmark.circle.fill" size={20} color="#fff" />
+          <ThemedText style={styles.soporteBtnText}>Soporte</ThemedText>
+        </TouchableOpacity>
       </LinearGradient>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -71,6 +147,21 @@ export default function ExploreScreen() {
           </View>
         ))}
 
+        {/* Banner de soporte */}
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <LinearGradient
+            colors={['#32c4d8', '#32e880']}
+            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            style={styles.soporteBanner}>
+            <IconSymbol name="headphones" size={28} color="#fff" />
+            <View style={{ flex: 1 }}>
+              <ThemedText style={styles.bannerTitle}>¿Tienes un problema?</ThemedText>
+              <ThemedText style={styles.bannerSub}>Envíanos un reporte y lo resolveremos</ThemedText>
+            </View>
+            <IconSymbol name="chevron.right" size={18} color="rgba(255,255,255,0.8)" />
+          </LinearGradient>
+        </TouchableOpacity>
+
         {/* Footer */}
         <View style={styles.footer}>
           <View style={styles.versionBadge}>
@@ -78,25 +169,135 @@ export default function ExploreScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* ── MODAL SOPORTE ── */}
+      <Modal visible={modalVisible} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            {/* Header del modal */}
+            <LinearGradient
+              colors={['#32c4d8', '#32e880']}
+              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              style={styles.modalHeader}>
+              <IconSymbol name="headphones" size={22} color="#fff" />
+              <ThemedText style={styles.modalTitle}>Soporte</ThemedText>
+            </LinearGradient>
+
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+              {/* Tipo de problema */}
+              <ThemedText style={styles.fieldLabel}>SELECCIONA EL TIPO DE PROBLEMA</ThemedText>
+              <TouchableOpacity
+                style={styles.dropdown}
+                onPress={() => setDropdownVisible(!dropdownVisible)}>
+                <ThemedText style={[styles.dropdownText, !tipoSeleccionado && { color: '#aac0cc' }]}>
+                  {tipoSeleccionado || 'Elige una opción...'}
+                </ThemedText>
+                <IconSymbol
+                  name={dropdownVisible ? 'chevron.up' : 'chevron.down'}
+                  size={16}
+                  color="#32a4b8"
+                />
+              </TouchableOpacity>
+
+              {dropdownVisible && (
+                <View style={styles.dropdownList}>
+                  {TIPOS_PROBLEMA.map((tipo) => (
+                    <TouchableOpacity
+                      key={tipo}
+                      style={[
+                        styles.dropdownItem,
+                        tipoSeleccionado === tipo && styles.dropdownItemSelected,
+                      ]}
+                      onPress={() => {
+                        setTipoSeleccionado(tipo);
+                        setDropdownVisible(false);
+                      }}>
+                      <ThemedText style={[
+                        styles.dropdownItemText,
+                        tipoSeleccionado === tipo && { color: '#32a4b8', fontWeight: '600' },
+                      ]}>
+                        {tipo}
+                      </ThemedText>
+                      {tipoSeleccionado === tipo && (
+                        <IconSymbol name="checkmark" size={14} color="#32a4b8" />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+              {/* Descripción */}
+              <ThemedText style={[styles.fieldLabel, { marginTop: 16 }]}>DESCRIPCIÓN DEL PROBLEMA</ThemedText>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.textArea}
+                  placeholder="Describe el problema con el mayor detalle posible..."
+                  placeholderTextColor="#aac0cc"
+                  value={descripcion}
+                  onChangeText={setDescripcion}
+                  multiline
+                  textAlignVertical="top"
+                />
+              </View>
+
+              {/* Botones */}
+              <View style={styles.modalBtns}>
+                <TouchableOpacity style={styles.cancelBtn} onPress={handleCancelar}>
+                  <ThemedText style={styles.cancelBtnText}>Cancelar</ThemedText>
+                </TouchableOpacity>
+                <LinearGradient
+                  colors={['#32c4d8', '#32e880']}
+                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                  style={styles.enviarBtnGradient}>
+                  <TouchableOpacity
+                    style={styles.enviarBtn}
+                    onPress={handleEnviarReporte}
+                    disabled={enviando}>
+                    {enviando
+                      ? <ActivityIndicator color="#fff" size="small" />
+                      : <>
+                          <IconSymbol name="paperplane.fill" size={16} color="#fff" />
+                          <ThemedText style={styles.enviarBtnText}>Enviar</ThemedText>
+                        </>
+                    }
+                  </TouchableOpacity>
+                </LinearGradient>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 52,
     paddingBottom: 24,
+    gap: 12,
   },
   headerTitle: { fontSize: 28, fontWeight: 'bold', color: '#fff' },
   headerSubtitle: { fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 4 },
+  soporteBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  soporteBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
 
   content: { padding: 16, paddingBottom: 36 },
 
   logoContainer: {
     flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'center', gap: 8,
-    marginVertical: 24,
+    justifyContent: 'center', gap: 8, marginVertical: 24,
   },
   logoBox: {
     width: 40, height: 40, borderRadius: 10,
@@ -121,11 +322,121 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 15, fontWeight: '700', color: '#1a3a4a', marginBottom: 6 },
   cardText: { fontSize: 13, color: '#7a9aaa', lineHeight: 20 },
 
-  footer: { alignItems: 'center', marginTop: 12 },
+  soporteBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 14,
+    borderRadius: 16, padding: 18, marginTop: 4, marginBottom: 16,
+  },
+  bannerTitle: { fontSize: 15, fontWeight: '700', color: '#fff' },
+  bannerSub: { fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 3 },
+
+  footer: { alignItems: 'center', marginTop: 4 },
   versionBadge: {
     backgroundColor: 'rgba(255,255,255,0.7)',
     borderRadius: 20, paddingHorizontal: 16, paddingVertical: 6,
     borderWidth: 1, borderColor: '#d0eaf2',
   },
   versionText: { fontSize: 12, color: '#7a9aaa' },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    justifyContent: 'flex-end',
+  },
+  modalCard: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '88%',
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+  },
+  modalTitle: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  modalBody: { paddingHorizontal: 20, paddingTop: 8 },
+
+  fieldLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#7a9aaa',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+
+  dropdown: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: '#f0f8fb',
+    borderWidth: 1.5,
+    borderColor: '#d0eaf2',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+  },
+  dropdownText: { fontSize: 14, color: '#1a3a4a' },
+  dropdownList: {
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: '#d0eaf2',
+    borderRadius: 12,
+    marginTop: 4,
+    overflow: 'hidden',
+  },
+  dropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f4f6',
+  },
+  dropdownItemSelected: { backgroundColor: '#e8f9fb' },
+  dropdownItemText: { fontSize: 14, color: '#1a3a4a' },
+
+  inputWrapper: {
+    backgroundColor: '#f0f8fb',
+    borderWidth: 1.5,
+    borderColor: '#d0eaf2',
+    borderRadius: 12,
+  },
+  textArea: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: '#1a3a4a',
+    minHeight: 110,
+    maxHeight: 160,
+  },
+
+  modalBtns: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 20,
+    marginBottom: 32,
+  },
+  cancelBtn: {
+    flex: 1,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f4f6',
+    borderRadius: 14,
+  },
+  cancelBtnText: { fontSize: 15, fontWeight: '600', color: '#7a9aaa' },
+  enviarBtnGradient: { flex: 1, borderRadius: 14 },
+  enviarBtn: {
+    height: 50,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
+  },
+  enviarBtnText: { color: '#fff', fontSize: 15, fontWeight: 'bold' },
 });
