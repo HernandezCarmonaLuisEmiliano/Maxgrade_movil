@@ -5,9 +5,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator, Alert, KeyboardAvoidingView,
-  Platform, ScrollView, StyleSheet, TextInput,
-  TouchableOpacity, View,
+    ActivityIndicator, Alert, KeyboardAvoidingView,
+    Platform, ScrollView, StyleSheet, TextInput,
+    TouchableOpacity, View,
 } from 'react-native';
 
 export function JoinClassScreen() {
@@ -31,20 +31,20 @@ export function JoinClassScreen() {
   const letras = codigo.padEnd(6, ' ').split('');
 
   return (
-    <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
+    <LinearGradient colors={['#f5f5f5', '#ffffff', '#f9f9f9']} style={{ flex: 1 }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container}>
 
           <View style={styles.header}>
             <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
-              <IconSymbol name="xmark" size={18} color="#32a4b8" />
+              <IconSymbol name="xmark" size={18} color="#5b6bff" />
             </TouchableOpacity>
             <ThemedText style={styles.title}>Unirse a Clase</ThemedText>
           </View>
 
           <View style={styles.iconContainer}>
             <LinearGradient
-              colors={['#32c4b8', '#32e880']}
+              colors={['#5b6bff', '#1AC952']}
               style={styles.iconBox}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
               <IconSymbol name="qrcode" size={36} color="#fff" />
@@ -72,13 +72,13 @@ export function JoinClassScreen() {
               autoCapitalize="characters"
               maxLength={6}
               textAlign="center"
-              selectionColor="#32a4b8"
+              selectionColor="#5b6bff"
               autoCorrect={false}
             />
           </View>
 
           <LinearGradient
-            colors={codigo.trim().length === 6 ? ['#32c4d8', '#32e880'] : ['#d0eaf2', '#d0eaf2']}
+            colors={codigo.trim().length === 6 ? ['#5b6bff', '#1AC952'] : ['#e0e0e0', '#e0e0e0']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={styles.buttonGradient}>
             <TouchableOpacity style={styles.button} onPress={handleJoinClass} disabled={loading}>
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.8)',
     borderWidth: 1.5, borderColor: '#d0eaf2',
   },
-  letraBoxFilled: { borderColor: '#32a4b8', backgroundColor: '#e0f7fa' },
+  letraBoxFilled: { borderColor: '#5b6bff', backgroundColor: '#f5f5f5' },
   letraText: { fontSize: 22, fontWeight: 'bold', color: '#1a3a4a' },
 
   inputWrapper: {

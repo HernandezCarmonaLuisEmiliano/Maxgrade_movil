@@ -8,17 +8,17 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 type ClaseReal = {
@@ -256,25 +256,25 @@ export function ClassDetailScreen() {
 
   if (loading) {
     return (
-      <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#32a4b8" />
+      <LinearGradient colors={['#f5f5f5', '#ffffff', '#f9f9f9']} style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#5b6bff" />
       </LinearGradient>
     );
   }
 
   if (!clase) {
     return (
-      <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={styles.centerContainer}>
+      <LinearGradient colors={['#f5f5f5', '#ffffff', '#f9f9f9']} style={styles.centerContainer}>
         <ThemedText>Clase no encontrada</ThemedText>
       </LinearGradient>
     );
   }
 
   return (
-    <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
+    <LinearGradient colors={['#f5f5f5', '#ffffff', '#f9f9f9']} style={{ flex: 1 }}>
       {/* Header */}
       <LinearGradient
-        colors={['#32c4d8', '#32e880']}
+        colors={['#5b6bff', '#1AC952']}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
         style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -292,16 +292,16 @@ export function ClassDetailScreen() {
 
       <View style={styles.infoBar}>
         <View style={styles.infoItem}>
-          <IconSymbol name="doc.text.fill" size={15} color="#32a4b8" />
+          <IconSymbol name="doc.text.fill" size={15} color="#5b6bff" />
           <ThemedText style={styles.infoText}>{tareasPorClase.length} tareas</ThemedText>
         </View>
         <View style={styles.infoItem}>
-          <IconSymbol name="person.2.fill" size={15} color="#32a4b8" />
+          <IconSymbol name="person.2.fill" size={15} color="#5b6bff" />
           <ThemedText style={styles.infoText}>{miembrosCount} miembros</ThemedText>
         </View>
         {clase.materia && (
           <View style={styles.infoItem}>
-            <IconSymbol name="book.fill" size={15} color="#32a4b8" />
+            <IconSymbol name="book.fill" size={15} color="#5b6bff" />
             <ThemedText style={styles.infoText}>{clase.materia}</ThemedText>
           </View>
         )}
@@ -337,7 +337,7 @@ export function ClassDetailScreen() {
         <View style={styles.tabContent}>
           {esProfesor && (
             <LinearGradient
-              colors={['#32c4d8', '#32e880']}
+              colors={['#5b6bff', '#1AC952']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.createTaskGradient}>
               <TouchableOpacity style={styles.createTaskBtn} onPress={() => setModalVisible(true)}>
@@ -349,7 +349,7 @@ export function ClassDetailScreen() {
 
           {tareasPorClase.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <IconSymbol name="doc.text" size={48} color="#32a4b840" />
+              <IconSymbol name="doc.text" size={48} color="#5b6bff40" />
               <ThemedText style={styles.emptyText}>No hay tareas aún</ThemedText>
             </View>
           ) : (
@@ -359,13 +359,13 @@ export function ClassDetailScreen() {
               renderItem={({ item }) => (
                 <TouchableOpacity style={styles.taskCard} onPress={() => handleTareaPress(item)}>
                   <View style={styles.taskIcon}>
-                    <IconSymbol name="doc.text.fill" size={20} color="#32a4b8" />
+                    <IconSymbol name="doc.text.fill" size={20} color="#5b6bff" />
                   </View>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={styles.taskTitle}>{item.titulo}</ThemedText>
                     <ThemedText style={styles.taskDesc}>{item.descripcion}</ThemedText>
                     <View style={styles.taskMeta}>
-                      <IconSymbol name="star.fill" size={12} color="#32a4b8" />
+                      <IconSymbol name="star.fill" size={12} color="#5b6bff" />
                       <ThemedText style={styles.metaText}>{item.puntos_maximos} pts</ThemedText>
                       <View style={styles.metaDot} />
                       <IconSymbol name="calendar" size={12} color="#7a9aaa" />
@@ -374,7 +374,7 @@ export function ClassDetailScreen() {
                       </ThemedText>
                     </View>
                   </View>
-                  <IconSymbol name="chevron.right" size={18} color="#32a4b8" />
+                  <IconSymbol name="chevron.right" size={18} color="#5b6bff" />
                 </TouchableOpacity>
               )}
               scrollEnabled nestedScrollEnabled

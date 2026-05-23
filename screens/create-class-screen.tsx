@@ -5,9 +5,9 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator, Alert, KeyboardAvoidingView,
-  Platform, ScrollView, StyleSheet, TextInput,
-  TouchableOpacity, View,
+    ActivityIndicator, Alert, KeyboardAvoidingView,
+    Platform, ScrollView, StyleSheet, TextInput,
+    TouchableOpacity, View,
 } from 'react-native';
 
 
@@ -30,20 +30,20 @@ export function CreateClassScreen() {
   };
 
   return (
-    <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
+    <LinearGradient colors={['#f5f5f5', '#ffffff', '#f9f9f9']} style={{ flex: 1 }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container}>
 
           <View style={styles.header}>
             <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
-              <IconSymbol name="xmark" size={18} color="#32a4b8" />
+              <IconSymbol name="xmark" size={18} color="#5b6bff" />
             </TouchableOpacity>
             <ThemedText style={styles.title}>Crear Clase</ThemedText>
           </View>
 
           <View style={styles.iconContainer}>
             <LinearGradient
-              colors={['#32c4b8', '#32e880']}
+              colors={['#5b6bff', '#1AC952']}
               style={styles.iconBox}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
               <IconSymbol name="plus.circle.fill" size={36} color="#fff" />
@@ -54,11 +54,11 @@ export function CreateClassScreen() {
           <View style={styles.form}>
             <ThemedText style={styles.label}>NOMBRE DE LA CLASE</ThemedText>
             <View style={styles.inputWrapper}>
-              <IconSymbol name="book.fill" size={16} color="#32a4b8" style={{ marginRight: 10 }} />
+              <IconSymbol name="book.fill" size={16} color="#5b6bff" style={{ marginRight: 10 }} />
               <TextInput
                 style={styles.input}
                 placeholder="Ej: Matemáticas 101"
-                placeholderTextColor="#aac0cc"
+                placeholderTextColor="#999999"
                 value={nombre}
                 onChangeText={setNombre}
                 editable={!loading}
@@ -68,11 +68,11 @@ export function CreateClassScreen() {
 
             <ThemedText style={[styles.label, { marginTop: 16 }]}>MATERIA (OPCIONAL)</ThemedText>
             <View style={[styles.inputWrapper, { alignItems: 'flex-start', paddingTop: 12 }]}>
-              <IconSymbol name="text.alignleft" size={16} color="#32a4b8" style={{ marginRight: 10, marginTop: 2 }} />
+              <IconSymbol name="text.alignleft" size={16} color="#5b6bff" style={{ marginRight: 10, marginTop: 2 }} />
               <TextInput
                 style={[styles.input, { minHeight: 90 }]}
                 placeholder="Añade una materia..."
-                placeholderTextColor="#aac0cc"
+                placeholderTextColor="#999999"
                 value={materia}
                 onChangeText={setMateria}
                 editable={!loading}
@@ -82,7 +82,7 @@ export function CreateClassScreen() {
             </View>
 
             <LinearGradient
-              colors={['#32c4d8', '#32e880']}
+              colors={['#5b6bff', '#1AC952']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.buttonGradient}>
               <TouchableOpacity style={styles.button} onPress={handleCreateClass} disabled={loading}>
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     width: 38, height: 38, borderRadius: 12,
     justifyContent: 'center', alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.8)',
-    borderWidth: 1.5, borderColor: '#d0eaf2', marginRight: 14,
+    borderWidth: 1.5, borderColor: '#e0e0e0', marginRight: 14,
   },
   title: { fontSize: 24, fontWeight: 'bold', color: '#1a3a4a' },
   iconContainer: { alignItems: 'center', marginBottom: 32 },
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   inputWrapper: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.85)',
-    borderWidth: 1.5, borderColor: '#d0eaf2',
+    borderWidth: 1.5, borderColor: '#e0e0e0',
     borderRadius: 14, paddingHorizontal: 16, minHeight: 52,
   },
   input: { flex: 1, color: '#1a3a4a', fontSize: 15 },

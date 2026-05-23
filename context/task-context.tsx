@@ -23,7 +23,7 @@ export interface Entrega {
   nombre_archivo?: string;
   fecha_entrega?: string;
   calificacion?: number;
-  comentarios_profesor?: string;
+  comentario_profesor?: string;
 }
 
 export interface Comentario {
@@ -231,7 +231,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         .from('entregas')
         .update({
           calificacion,
-          comentarios_profesor: comentario,
+          comentario_profesor: comentario,
           estado: 'calificado',
         })
         .eq('id', entregaId);

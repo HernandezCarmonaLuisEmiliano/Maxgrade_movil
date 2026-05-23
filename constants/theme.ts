@@ -1,19 +1,18 @@
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4'; // El azul que estás usando para destacar
+const tintColorLight = '#5b6bff'; // Morado principal
 
 export const Colors = {
   light: {
-    text: '#11181C',          // Texto principal oscuro (pizarra)
-    background: '#F8FAFC',    // Fondo general gris ultra-claro (muy limpio para listas)
+    text: '#11181C',          // Texto principal oscuro
+    background: '#F8FAFC',    // Fondo general gris ultra-claro
     tint: tintColorLight,
     icon: '#687076',
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
   },
   dark: {
-    // Duplicamos exactamente los mismos colores claros en el nodo "dark"
-    // Así, si el sistema operativo está en modo oscuro, tu app seguirá pintándose clara.
+    // Mismo esquema claro
     text: '#11181C',          
     background: '#F8FAFC',    
     tint: tintColorLight,

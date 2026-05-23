@@ -8,15 +8,15 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from 'react-native';
 
 interface ClasseCardProps {
@@ -34,7 +34,7 @@ function ClasseCard({ clase, onPress }: ClasseCardProps) {
         <ThemedText style={styles.cardDesc}>{clase.materia || 'Sin descripción'}</ThemedText>
         <ThemedText style={styles.cardCode}>Código: {clase.codigo_acceso}</ThemedText>
       </View>
-      <IconSymbol name="chevron.right" size={20} color="#32a4b8" />
+      <IconSymbol name="chevron.right" size={20} color="#5b6bff" />
     </TouchableOpacity>
   );
 }
@@ -107,7 +107,7 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
   };
 
   return (
-    <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
+    <LinearGradient colors={['#f5f5f5', '#ffffff', '#f9f9f9']} style={{ flex: 1 }}>
       <View style={styles.header}>
         <View>
           <ThemedText style={styles.headerTitle}>Mis Clases</ThemedText>
@@ -117,7 +117,7 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
         </View>
         <TouchableOpacity onPress={() => setDrawerVisible(true)}>
           <LinearGradient
-            colors={['#32c4b8', '#32e880']}
+            colors={['#5b6bff', '#1AC952']}
             style={styles.profileBtn}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}>
@@ -130,7 +130,7 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
 
       <View style={styles.buttonsContainer}>
         <LinearGradient
-          colors={['#32c4d8', '#32e880']}
+          colors={['#5b6bff', '#1AC952']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={[styles.actionGradient, { marginRight: 8 }]}>
@@ -143,18 +143,18 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
         <TouchableOpacity
           style={styles.actionButtonOutline}
           onPress={onJoinClass}>
-          <IconSymbol name="plus.circle" size={18} color="#32a4b8" />
+          <IconSymbol name="plus.circle" size={18} color="#5b6bff" />
           <ThemedText style={styles.actionButtonOutlineText}>Unirse</ThemedText>
         </TouchableOpacity>
       </View>
 
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#32a4b8" />
+          <ActivityIndicator size="large" color="#5b6bff" />
         </View>
       ) : clases.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <IconSymbol name="book.closed" size={52} color="#32a4b840" />
+          <IconSymbol name="book.closed" size={52} color="#5b6bff40" />
           <ThemedText style={styles.emptyText}>No tienes clases aún</ThemedText>
           <ThemedText style={styles.emptySubtext}>Crea una nueva o únete con un código</ThemedText>
         </View>
@@ -176,10 +176,10 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
 
         <View style={styles.drawer}>
           <LinearGradient
-            colors={['#e0f7fa', '#f0fff4']}
+            colors={['#f5f5f5', '#ffffff']}
             style={styles.drawerProfile}>
             <LinearGradient
-              colors={['#32c4b8', '#32e880']}
+              colors={['#5b6bff', '#1AC952']}
               style={styles.drawerAvatar}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}>
@@ -197,7 +197,7 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
 
           <View style={styles.drawerSection}>
             <View style={styles.drawerSectionHeader}>
-              <IconSymbol name="bell.fill" size={16} color="#32a4b8" />
+              <IconSymbol name="bell.fill" size={16} color="#5b6bff" />
               <ThemedText style={styles.drawerSectionTitle}>Hora de recordatorio</ThemedText>
             </View>
             <ThemedText style={styles.drawerSectionSubtitle}>
@@ -205,7 +205,7 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
             </ThemedText>
 
             {guardandoHora ? (
-              <ActivityIndicator color="#32a4b8" style={{ marginTop: 12 }} />
+              <ActivityIndicator color="#5b6bff" style={{ marginTop: 12 }} />
             ) : (
               <ScrollView style={styles.horasList} showsVerticalScrollIndicator={false} nestedScrollEnabled>
                 {HORAS.map((h) => (
@@ -274,22 +274,22 @@ const styles = StyleSheet.create({
   actionButtonOutline: {
     flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     gap: 8, paddingVertical: 13, borderRadius: 12,
-    borderWidth: 1.5, borderColor: '#32a4b8', backgroundColor: 'rgba(255,255,255,0.6)',
+    borderWidth: 1.5, borderColor: '#5b6bff', backgroundColor: 'rgba(255,255,255,0.6)',
   },
-  actionButtonOutlineText: { color: '#32a4b8', fontWeight: 'bold', fontSize: 14 },
+  actionButtonOutlineText: { color: '#5b6bff', fontWeight: 'bold', fontSize: 14 },
 
   listContainer: { paddingHorizontal: 20, paddingBottom: 24 },
   cardContainer: {
     backgroundColor: 'rgba(255,255,255,0.85)',
-    borderRadius: 16, borderWidth: 1.5, borderColor: '#d0eaf2',
+    borderRadius: 16, borderWidth: 1.5, borderColor: '#e0e0e0',
     padding: 16, marginBottom: 12,
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    shadowColor: '#32c4b8', shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#5b6bff', shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08, shadowRadius: 8, elevation: 3,
   },
   cardTitle: { fontSize: 16, fontWeight: '600', color: '#1a3a4a', marginBottom: 4 },
   cardDesc: { fontSize: 13, color: '#7a9aaa', marginBottom: 6 },
-  cardCode: { fontSize: 12, color: '#32a4b8' },
+  cardCode: { fontSize: 12, color: '#5b6bff' },
 
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
@@ -325,15 +325,15 @@ const styles = StyleSheet.create({
   horaItem: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     paddingVertical: 10, paddingHorizontal: 14,
-    borderRadius: 10, borderWidth: 1.5, borderColor: '#d0eaf2',
-    backgroundColor: '#f0f8fb', marginBottom: 6,
+    borderRadius: 10, borderWidth: 1.5, borderColor: '#e0e0e0',
+    backgroundColor: '#f5f5f5', marginBottom: 6,
   },
-  horaItemActive: { backgroundColor: '#32a4b8', borderColor: '#32a4b8' },
+  horaItemActive: { backgroundColor: '#5b6bff', borderColor: '#5b6bff' },
   horaText: { fontSize: 14, color: '#1a3a4a' },
   horaTextActive: { color: '#fff' },
   logoutItem: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
-    padding: 20, borderTopWidth: 1, borderTopColor: '#d0eaf2',
+    padding: 20, borderTopWidth: 1, borderTopColor: '#e0e0e0',
   },
   logoutText: { color: '#ef4444', fontWeight: '600', fontSize: 15 },
 });

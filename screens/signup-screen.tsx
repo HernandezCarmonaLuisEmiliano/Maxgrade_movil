@@ -47,7 +47,7 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
   };
 
   return (
-    <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
+    <LinearGradient colors={['#f5f5f5', '#ffffff', '#f9f9f9']} style={{ flex: 1 }}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.card}>
@@ -61,16 +61,17 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
                 <ThemedText style={styles.brandMax}>Max</ThemedText>
                 <ThemedText style={styles.brandGrade}>Grade</ThemedText>
               </ThemedText>
-              <ThemedText style={styles.subtitle}>Crea tu cuenta</ThemedText>
+              <ThemedText style={styles.welcome}>Bienvenido de Nuevo</ThemedText>
+              <ThemedText style={styles.subtitle}>Inicia sesión para ver tus clases</ThemedText>
             </View>
 
             <View style={styles.form}>
               <View style={styles.row}>
                 <View style={[styles.inputWrapper, { flex: 1, marginRight: 8 }]}>
-                  <IconSymbol name="person" size={18} color="#32a4b8" style={{ marginRight: 8 }} />
+                  <IconSymbol name="person" size={18} color="#5b6bff" style={{ marginRight: 8 }} />
                   <TextInput
                     style={styles.input}
-                    placeholder="Nombre"
+                    placeholder="Nombre..."
                     placeholderTextColor="#aac0cc"
                     value={nombre}
                     onChangeText={setNombre}
@@ -81,7 +82,7 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
                 <View style={[styles.inputWrapper, { flex: 1 }]}>
                   <TextInput
                     style={styles.input}
-                    placeholder="Apellido"
+                    placeholder="Apellidos..."
                     placeholderTextColor="#aac0cc"
                     value={apellido}
                     onChangeText={setApellido}
@@ -93,10 +94,10 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
 
               <ThemedText style={styles.label}>CORREO ELECTRÓNICO</ThemedText>
               <View style={styles.inputWrapper}>
-                <IconSymbol name="envelope" size={18} color="#32a4b8" style={{ marginRight: 10 }} />
+                <IconSymbol name="envelope" size={18} color="#5b6bff" style={{ marginRight: 10 }} />
                 <TextInput
                   style={styles.input}
-                  placeholder="correo@ejemplo.com"
+                  placeholder="ejemplo@gmail.com"
                   placeholderTextColor="#aac0cc"
                   value={correo}
                   onChangeText={setCorreo}
@@ -108,7 +109,7 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
 
               <ThemedText style={styles.label}>CONTRASEÑA</ThemedText>
               <View style={styles.inputWrapper}>
-                <IconSymbol name="lock" size={18} color="#32a4b8" style={{ marginRight: 10 }} />
+                <IconSymbol name="lock" size={18} color="#5b6bff" style={{ marginRight: 10 }} />
                 <TextInput
                   style={[styles.input, { flex: 1 }]}
                   placeholder="Mínimo 8 caracteres"
@@ -119,12 +120,12 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
                   editable={!loading}
                 />
                 <TouchableOpacity onPress={() => setShowPass(!showPass)}>
-                  <IconSymbol name={showPass ? 'eye.slash' : 'eye'} size={18} color="#32a4b8" />
+                  <IconSymbol name={showPass ? 'eye.slash' : 'eye'} size={18} color="#5b6bff" />
                 </TouchableOpacity>
               </View>
 
               <LinearGradient
-                colors={['#32c4d8', '#32e880']}
+                colors={['#5b6bff', '#6b7bff']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
                 style={styles.buttonGradient}>
@@ -132,16 +133,16 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
                   {loading ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <ThemedText style={styles.buttonText}>Registrarse</ThemedText>
+                    <ThemedText style={styles.buttonText}>Crear Cuenta</ThemedText>
                   )}
                 </TouchableOpacity>
               </LinearGradient>
             </View>
 
             <View style={styles.footer}>
-              <ThemedText style={styles.footerText}>¿Ya tienes cuenta? </ThemedText>
+              <ThemedText style={styles.footerText}>¿Ya tienes una cuenta? </ThemedText>
               <TouchableOpacity onPress={onLogin}>
-                <ThemedText style={styles.footerLink}>Inicia sesión</ThemedText>
+                <ThemedText style={styles.footerLink}>INICIA SESIÓN</ThemedText>
               </TouchableOpacity>
             </View>
           </View>
@@ -157,7 +158,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.85)',
     borderRadius: 28,
     padding: 28,
-    shadowColor: '#32c4b8',
+    shadowColor: '#5b6bff',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,
     shadowRadius: 20,
@@ -170,8 +171,9 @@ const styles = StyleSheet.create({
   },
   logoLetter: { color: '#fff', fontSize: 32, fontWeight: 'bold' },
   brand: { fontSize: 26, fontWeight: 'bold', marginBottom: 6 },
-  brandMax: { color: '#32a4b8', fontSize: 26, fontWeight: 'bold' },
-  brandGrade: { color: '#32b880', fontSize: 26, fontWeight: 'bold' },
+  brandMax: { color: '#5b6bff', fontSize: 26, fontWeight: 'bold' },
+  brandGrade: { color: '#9999ff', fontSize: 26, fontWeight: 'bold' },
+  welcome: { color: '#1a3a4a', fontSize: 22, fontWeight: 'bold', marginBottom: 8 },
   subtitle: { color: '#7a9aaa', fontSize: 14 },
   form: { marginBottom: 20 },
   row: { flexDirection: 'row', marginBottom: 4 },
@@ -188,7 +190,7 @@ const styles = StyleSheet.create({
   buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
   footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 4 },
   footerText: { color: '#7a9aaa', fontSize: 14 },
-  footerLink: { color: '#32a4b8', fontSize: 14, fontWeight: 'bold' },
+  footerLink: { color: '#5b6bff', fontSize: 14, fontWeight: 'bold' },
   logoImage: {        
     width: 90,
     height: 90,

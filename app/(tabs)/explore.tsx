@@ -5,14 +5,14 @@ import { useAuth } from '@/context/auth-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
 const TIPOS_PROBLEMA = [
@@ -37,25 +37,25 @@ export default function ExploreScreen() {
       icon: 'book.fill',
       titulo: 'Sobre MaxGrade',
       texto: 'La plataforma ideal para gestionar tus tareas escolares, recibir notificaciones personalizadas y conectar con tu grupo :)',
-      color: ['#32c4b8', '#32e880'] as [string, string],
+      color: ['#5b6bff', '#1AC952'] as [string, string],
     },
     {
       icon: 'plus.circle.fill',
       titulo: 'Crear una Clase',
       texto: 'Presiona el botón "Crear Clase" en la pantalla principal, ingresa el nombre y descripción. Recibirás un código único de 6 caracteres.',
-      color: ['#32a4d8', '#32c4b8'] as [string, string],
+      color: ['#5b6bff', '#1AC952'] as [string, string],
     },
     {
       icon: 'checkmark.circle.fill',
       titulo: 'Unirse a una Clase',
       texto: 'Presiona el botón "Unirse" e ingresa el código de 6 caracteres proporcionado por tu profesor.',
-      color: ['#32c4d8', '#32e880'] as [string, string],
+      color: ['#5b6bff', '#1AC952'] as [string, string],
     },
     {
       icon: 'bell.fill',
       titulo: 'Recordatorios',
       texto: 'Toca tu avatar en la esquina superior derecha de la pantalla de clases para configurar la hora en que recibirás recordatorios de tareas pendientes.',
-      color: ['#32a4b8', '#32c4d8'] as [string, string],
+      color: ['#5b6bff', '#1AC952'] as [string, string],
     },
   ];
 
@@ -99,10 +99,10 @@ export default function ExploreScreen() {
   };
 
   return (
-    <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={{ flex: 1 }}>
+    <LinearGradient colors={['#f5f5f5', '#ffffff', '#f9f9f9']} style={{ flex: 1 }}>
       {/* Header */}
       <LinearGradient
-        colors={['#32c4d8', '#32e880']}
+        colors={['#5b6bff', '#1AC952']}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
         style={styles.header}>
         <View style={{ flex: 1 }}>
@@ -122,7 +122,7 @@ export default function ExploreScreen() {
         {/* Logo decorativo */}
         <View style={styles.logoContainer}>
           <LinearGradient
-            colors={['#32c4b8', '#32e880']}
+            colors={['#5b6bff', '#1AC952']}
             style={styles.logoBox}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
             <ThemedText style={styles.logoLetter}>M</ThemedText>
@@ -150,7 +150,7 @@ export default function ExploreScreen() {
         {/* Banner de soporte */}
         <TouchableOpacity onPress={() => setModalVisible(true)}>
           <LinearGradient
-            colors={['#32c4d8', '#32e880']}
+            colors={['#5b6bff', '#1AC952']}
             start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
             style={styles.soporteBanner}>
             <IconSymbol name="headphones" size={28} color="#fff" />
@@ -176,7 +176,7 @@ export default function ExploreScreen() {
           <View style={styles.modalCard}>
             {/* Header del modal */}
             <LinearGradient
-              colors={['#32c4d8', '#32e880']}
+              colors={['#5b6bff', '#1AC952']}
               start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
               style={styles.modalHeader}>
               <IconSymbol name="headphones" size={22} color="#fff" />
@@ -195,7 +195,7 @@ export default function ExploreScreen() {
                 <IconSymbol
                   name={dropdownVisible ? 'chevron.up' : 'chevron.down'}
                   size={16}
-                  color="#32a4b8"
+                  color="#5b6bff"
                 />
               </TouchableOpacity>
 
@@ -214,12 +214,12 @@ export default function ExploreScreen() {
                       }}>
                       <ThemedText style={[
                         styles.dropdownItemText,
-                        tipoSeleccionado === tipo && { color: '#32a4b8', fontWeight: '600' },
+                        tipoSeleccionado === tipo && { color: '#5b6bff', fontWeight: '600' },
                       ]}>
                         {tipo}
                       </ThemedText>
                       {tipoSeleccionado === tipo && (
-                        <IconSymbol name="checkmark" size={14} color="#32a4b8" />
+                        <IconSymbol name="checkmark" size={14} color="#5b6bff" />
                       )}
                     </TouchableOpacity>
                   ))}
