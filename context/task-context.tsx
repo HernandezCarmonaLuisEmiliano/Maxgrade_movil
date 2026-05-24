@@ -100,7 +100,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
             descripcion: descripcion.trim(),
             puntos_maximos: puntosMaximos,
             fecha_entrega: fechaEntrega,
-            profesor_id: user.id,
+            creador_id: user.id,
           },
         ])
         .select()

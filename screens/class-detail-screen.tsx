@@ -12,12 +12,13 @@ import {
   Alert,
   FlatList,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native';
 
 /* ──────────────────────────── TIPOS ──────────────────────────── */
@@ -54,20 +55,20 @@ type Miembro = {
 export function ClassDetailScreen() {
   const router = useRouter();
   const { claseId } = useLocalSearchParams<{ claseId: string }>();
-  const { user } = useAuth();
+  const { user }     = useAuth();
   const { salirClase } = useClases();
   const { crearTarea } = useTareas();
 
-  /* STATE ───────────────────────────────────────────────────── */
-  const [clase, setClase] = useState<ClaseReal | null>(null);
-  const [tareasPorClase, setTareasPorClase] = useState<any[]>([]);
-  const [anuncios, setAnuncios] = useState<Anuncio[]>([]);
-  const [miembros, setMiembros] = useState<Miembro[]>([]);
-  const [miembrosCount, setMiembrosCount] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [esProfesor, setEsProfesor] = useState(false);
+  /* ─────────────── STATE PRINCIPAL ─────────────── */
+  const [clase,             setClase]             = useState<ClaseReal | null>(null);
+  const [tareasPorClase,    setTareasPorClase]    = useState<any[]>([]);
+  const [anuncios,          setAnuncios]          = useState<Anuncio[]>([]);
+  const [miembros,          setMiembros]          = useState<Miembro[]>([]);
+  const [miembrosCount,     setMiembrosCount]     = useState(0);
+  const [loading,           setLoading]           = useState(true);
+  const [esProfesor,        setEsProfesor]        = useState(false);
 
-  /* UI state */
+  /* ─────────────── UI STATE ─────────────── */
   const [modalVisible,         setModalVisible]         = useState(false);
   const [menuVisible,          setMenuVisible]          = useState(false);
   const [modalEditDescripcion, setModalEditDescripcion] = useState(false);
@@ -85,14 +86,14 @@ export function ClassDetailScreen() {
   >('tareas');
 
   /* Anuncios */
-  const [nuevoAnuncio,   setNuevoAnuncio]   = useState('');
-  const [enviandoAnuncio,setEnviandoAnuncio]= useState(false);
+  const [nuevoAnuncio,    setNuevoAnuncio]    = useState('');
+  const [enviandoAnuncio, setEnviandoAnuncio] = useState(false);
 
-  /* Sprint-2 editar descripción */
+  /* Editar descripción (sprint-2) */
   const [nuevaDescripcionClase,setNuevaDescripcionClase]=useState('');
-  const [editandoDescripcion, setEditandoDescripcion] = useState(false);
+  const [editandoDescripcion,  setEditandoDescripcion]  = useState(false);
 
-  /* ───────────────────── EFFECT: Cargar datos ───────────────── */
+  /* ─────────────── EFFECT CARGA ─────────────── */
   useEffect(() => { if (claseId) cargarClase(); }, [claseId]);
 
   const cargarClase = async () => {
@@ -106,21 +107,24 @@ export function ClassDetailScreen() {
       setEsProfesor(c.profesor_id === user?.id);
 
       /* Tareas */
-      const { data: tareas } = await supabase.from('tareas')
-        .select('*').eq('clase_id', claseId);
+      const { data: tareas } = await supabase
+        .from('tareas').select('*').eq('clase_id', claseId);
       setTareasPorClase(tareas || []);
 
-      /* Miembros count */
-      const { data: ins } = await supabase.from('inscripciones')
-        .select('id').eq('clase_id', claseId);
+      /* Miembros (conteo) */
+      const { data: ins } = await supabase
+        .from('inscripciones').select('id').eq('clase_id', claseId);
       setMiembrosCount((ins || []).length);
 
-      await Promise.all([cargarAnuncios(), cargarMiembros(c.profesor_id)]);
+      await Promise.all([
+        cargarAnuncios(),
+        cargarMiembros(c.profesor_id),
+      ]);
     } catch (e) { console.error(e); }
-    finally { setLoading(false); }
+    finally    { setLoading(false); }
   };
 
-  /* ───────────── Helpers miembros / anuncios ───────────── */
+  /* ─────────────── HELPERS ─────────────── */
   const cargarMiembros = async (profesorId: string) => {
     try {
       const { data, error } = await supabase
@@ -129,14 +133,14 @@ export function ClassDetailScreen() {
         .eq('clase_id', claseId);
       if (error) throw error;
 
-      const list: Miembro[] = (data || []).map((i: any) => ({
-        id:        i.usuarios.id,
-        nombre:    i.usuarios.nombre,
-        apellido:  i.usuarios.apellido,
-        correo:    i.usuarios.email,
-        esProfesor:i.usuarios.id === profesorId,
+      const list: Miembro[] = (data || []).map((i:any)=>({
+        id:         i.usuarios.id,
+        nombre:     i.usuarios.nombre,
+        apellido:   i.usuarios.apellido,
+        correo:     i.usuarios.email,
+        esProfesor: i.usuarios.id === profesorId,
       }));
-      list.sort((a,b)=> (a.esProfesor? -1 : b.esProfesor? 1 : 0));
+      list.sort((a,b)=> (a.esProfesor ? -1 : b.esProfesor ? 1 : 0));
       setMiembros(list);
     } catch (e) { console.error(e); }
   };
@@ -147,133 +151,204 @@ export function ClassDetailScreen() {
         .from('anuncios')
         .select('*, usuarios(nombre,apellido)')
         .eq('clase_id', claseId)
-        .order('fecha_publicacion', { ascending:false });
+        .order('fecha_publicacion',{ascending:false});
       if (error) throw error;
       setAnuncios((data||[]).map((a:any)=>({
         ...a,
-        autor_nombre: a.usuarios ? `${a.usuarios.nombre} ${a.usuarios.apellido}` : 'Usuario',
+        autor_nombre: a.usuarios
+          ? `${a.usuarios.nombre} ${a.usuarios.apellido}`
+          : 'Usuario',
       })));
     } catch (e) { console.error(e); }
   };
 
-  /* ───────────── Handlers varios (salir, código, etc.) ─────── */
-  const handleVerCodigo = () =>
-    (setMenuVisible(false),
-     Alert.alert('🔑 Código de la clase', clase?.codigo_acceso ?? '', [{text:'Cerrar',style:'cancel'}]));
+  /* ─────────────── HANDLERS ─────────────── */
+  const handlePublicarAnuncio = async () => {
+    if (!nuevoAnuncio.trim()) {
+      Alert.alert('Error','Escribe algo'); return;
+    }
+    setEnviandoAnuncio(true);
+    try {
+      const { error } = await supabase.from('anuncios').insert({
+        clase_id: claseId,
+        autor_id: user?.id,
+        contenido: nuevoAnuncio.trim(),
+      });
+      if (error) throw error;
+      setNuevoAnuncio('');
+      await cargarAnuncios();
+    } catch (e) {
+      Alert.alert('Error',(e as Error).message);
+    } finally {
+      setEnviandoAnuncio(false);
+    }
+  };
 
   const handleSalirClase = () => {
-    setMenuVisible(false);
-    Alert.alert('Salir de la clase',
-      `¿Estás seguro que deseas salir de "${clase?.nombre_clase}"?`,[
-        {text:'Cancelar',style:'cancel'},
-        {text:'Salir',style:'destructive',onPress:async()=>{
-          try{ await salirClase(claseId); router.back(); }
-          catch{ Alert.alert('Error','No se pudo salir');}
-        }},
-      ]);
-  };
+  setMenuVisible(false);
 
-  const handleEliminarAlumno = (id:string,nombre:string) => {
-    Alert.alert('Eliminar alumno',`¿Deseas eliminar a ${nombre}?`,[
-      {text:'Cancelar',style:'cancel'},
-      {text:'Eliminar',style:'destructive',onPress:async()=>{
-        const {error}=await supabase.from('inscripciones')
-          .delete().eq('clase_id',claseId).eq('estudiante_id',id);
-        if(error) Alert.alert('Error','No se pudo eliminar');
-        else { await cargarMiembros(clase!.profesor_id); setMiembrosCount(p=>p-1); }
-      }},
-    ]);
-  };
+  Alert.alert(
+    'Salir de la clase',
+    `¿Estás seguro que deseas salir de "${clase?.nombre_clase}"?`,
+    [
+      { text: 'Cancelar', style: 'cancel' },
 
-  const handleEliminarAnuncio = (id:string) => {
-    Alert.alert('Eliminar anuncio','¿Estás seguro?',[
-      {text:'Cancelar',style:'cancel'},
-      {text:'Eliminar',style:'destructive',onPress:async()=>{
-        const {error}=await supabase.from('anuncios').delete().eq('id',id);
-        if(error) Alert.alert('Error','No se pudo eliminar');
-        else await cargarAnuncios();
-      }},
-    ]);
-  };
-
-  const handlePublicarAnuncio = async () => {
-    if(!nuevoAnuncio.trim()) return Alert.alert('Error','Escribe algo');
-    setEnviandoAnuncio(true);
-    try{
-      const {error}=await supabase.from('anuncios').insert({
-        clase_id:claseId,autor_id:user?.id,contenido:nuevoAnuncio.trim(),
-      });
-      if(error) throw error;
-      setNuevoAnuncio(''); await cargarAnuncios();
-    } catch(e){ Alert.alert('Error',(e as Error).message); }
-    finally{ setEnviandoAnuncio(false); }
-  };
-
+      {
+        text: 'Salir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            await salirClase(claseId); 
+            router.back();           
+          } catch (err) {
+            console.error(err);
+            Alert.alert('Error', 'No se pudo salir de la clase');
+          }
+        },
+      },
+    ],
+  );
+};
   const handleCrearTarea = async () => {
-    if(!nuevoTituloTarea.trim()) return Alert.alert('Error','Ingresa título');
+    if (!nuevoTituloTarea.trim()) {
+      Alert.alert('Error','Ingresa título'); return;
+    }
     setCreando(true);
-    try{
+    try {
       await crearTarea(
         claseId,
         nuevoTituloTarea,
         nuevaDescripcion,
         parseInt(nuevosPuntos)||100,
-        nuevaFecha||new Date().toISOString()
+        nuevaFecha || new Date().toISOString(),
       );
-      setNuevoTituloTarea(''); setNuevaDescripcion(''); setNuevosPuntos('100');
-      setNuevaFecha(''); setModalVisible(false); await cargarClase();
-    } catch(e){ Alert.alert('Error',(e as Error).message);}
-    finally{ setCreando(false);}
+      setNuevoTituloTarea('');
+      setNuevaDescripcion('');
+      setNuevosPuntos('100');
+      setNuevaFecha('');
+      setModalVisible(false);
+      await cargarClase();
+    } catch (e) {
+      Alert.alert('Error',(e as Error).message);
+    } finally {
+      setCreando(false);
+    }
   };
 
-  /* Tabs helpers */
-  const handleTareaPress = (t:any)=>
-    router.push({pathname:'/task-detail',
-      params:{tareaId:t.id,claseId:t.clase_id,esProfesor:esProfesor.toString()} });
+  /* ──────── Handlers de borrado que faltaban ──────── */
 
-  /* ──────────────── RENDER ─────────────────────────── */
-  if(loading){
-    return(
+/** Eliminar anuncio (profesor o autor) */
+const handleEliminarAnuncio = (anuncioId: string) => {
+  Alert.alert('Eliminar anuncio', '¿Estás seguro?', [
+    { text: 'Cancelar', style: 'cancel' },
+    {
+      text: 'Eliminar',
+      style: 'destructive',
+      onPress: async () => {
+        const { error } = await supabase
+          .from('anuncios')
+          .delete()
+          .eq('id', anuncioId);
+
+        if (error) {
+          Alert.alert('Error', 'No se pudo eliminar el anuncio');
+        } else {
+          await cargarAnuncios();          // refresca la lista
+        }
+      },
+    },
+  ]);
+};
+
+/** Eliminar alumno (sólo visible para profesor) */
+const handleEliminarAlumno = (alumnoId: string, nombreCompleto: string) => {
+  Alert.alert('Eliminar alumno',
+    `¿Deseas eliminar a ${nombreCompleto} de la clase?`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: async () => {
+          const { error } = await supabase
+            .from('inscripciones')
+            .delete()
+            .eq('clase_id', claseId)
+            .eq('estudiante_id', alumnoId);
+
+          if (error) {
+            Alert.alert('Error', 'No se pudo eliminar al alumno');
+          } else {
+            await cargarMiembros(clase!.profesor_id); // refresca lista
+            setMiembrosCount(prev => prev - 1);
+          }
+        },
+      },
+    ]
+  );
+};
+
+const handleVerCodigo = () => {
+  setMenuVisible(false);          // cierra el menú
+  Alert.alert(
+    '🔑 Código de la clase',
+    clase?.codigo_acceso ?? '',
+    [{ text: 'Cerrar', style: 'cancel' }]
+  );
+};
+  const handleTareaPress = (t:any) =>
+    router.push({
+      pathname: '/task-detail',
+      params  : { tareaId:t.id, claseId:t.clase_id, esProfesor:esProfesor.toString() },
+    });
+
+  /* ─────────────── RENDER CARGAS ─────────────── */
+  if (loading) {
+    return (
       <LinearGradient colors={['#f5f5f5','#ffffff','#f9f9f9']} style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#5b6bff"/>
-      </LinearGradient>);
+        <ActivityIndicator size="large" color="#5b6bff" />
+      </LinearGradient>
+    );
   }
-  if(!clase){
-    return(
+  if (!clase) {
+    return (
       <LinearGradient colors={['#f5f5f5','#ffffff','#f9f9f9']} style={styles.centerContainer}>
         <ThemedText>Clase no encontrada</ThemedText>
-      </LinearGradient>);
+      </LinearGradient>
+    );
   }
 
+  /* ─────────────────────────── UI ─────────────────────────── */
   return (
     <LinearGradient colors={['#f5f5f5','#ffffff','#f9f9f9']} style={{flex:1}}>
-      {/* ───────── Header ───────── */}
+      {/* Header */}
       <LinearGradient colors={['#5b6bff','#6b7bff']} start={{x:0,y:0}} end={{x:1,y:0}} style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={()=>router.back()}>
-          <IconSymbol name="chevron.left" size={24} color="#fff"/>
+          <IconSymbol name="chevron.left" size={24} color="#fff" />
         </TouchableOpacity>
+
         <View style={{flex:1}}>
           <ThemedText style={styles.claseName}>{clase.nombre_clase}</ThemedText>
           <ThemedText style={styles.classCode}>Código: {clase.codigo_acceso}</ThemedText>
         </View>
+
         <TouchableOpacity style={styles.menuBtn} onPress={()=>setMenuVisible(true)}>
-          <IconSymbol name="ellipsis" size={22} color="#fff"/>
+          <IconSymbol name="ellipsis" size={22} color="#fff" />
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* ───────── Info bar ───────── */}
+      {/* Barra de info */}
       <View style={styles.infoBar}>
         <View style={styles.infoItem}>
-          <IconSymbol name="doc.text.fill" size={15} color="#5b6bff"/>
+          <IconSymbol name="doc.text.fill" size={15} color="#5b6bff" />
           <ThemedText style={styles.infoText}>{tareasPorClase.length} tareas</ThemedText>
         </View>
         <View style={styles.infoItem}>
-          <IconSymbol name="person.2.fill" size={15} color="#5b6bff"/>
+          <IconSymbol name="person.2.fill" size={15} color="#5b6bff" />
           <ThemedText style={styles.infoText}>{miembrosCount} miembros</ThemedText>
         </View>
         {clase.materia && (
           <View style={styles.infoItem}>
-            <IconSymbol name="book.fill" size={15} color="#5b6bff"/>
+            <IconSymbol name="book.fill" size={15} color="#5b6bff" />
             <ThemedText style={styles.infoText}>{clase.materia}</ThemedText>
           </View>
         )}
@@ -286,13 +361,13 @@ export function ClassDetailScreen() {
         </View>
       )}
 
-      {/* ───────── Tabs ───────── */}
+      {/* Tabs */}
       <View style={styles.tabsContainer}>
         {(['tareas','miembros','anuncios'] as const).map(t=>(
           <TouchableOpacity key={t}
             style={[styles.tab, tabActivo===t && styles.tabActive]}
             onPress={()=>setTabActivo(t)}>
-            <ThemedText style={[styles.tabText, tabActivo===t&&styles.tabTextActive]}>
+            <ThemedText style={[styles.tabText, tabActivo===t && styles.tabTextActive]}>
               {t.charAt(0).toUpperCase()+t.slice(1)}
             </ThemedText>
           </TouchableOpacity>
@@ -308,13 +383,14 @@ export function ClassDetailScreen() {
         )}
       </View>
 
-      {/* ───────── Contenido Tabs ───────── */}
+      {/* ─────────── CONTENIDO DE CADA TAB ─────────── */}
+      {/* ---- TAREAS ---- */}
       {tabActivo==='tareas' && (
         <View style={styles.tabContent}>
           {esProfesor && (
             <LinearGradient colors={['#5b6bff','#6b7bff']} start={{x:0,y:0}} end={{x:1,y:0}} style={styles.createTaskGradient}>
               <TouchableOpacity style={styles.createTaskBtn} onPress={()=>setModalVisible(true)}>
-                <IconSymbol name="plus.circle.fill" size={18} color="#fff"/>
+                <IconSymbol name="plus.circle.fill" size={18} color="#fff" />
                 <ThemedText style={styles.createTaskBtnText}>Crear Tarea</ThemedText>
               </TouchableOpacity>
             </LinearGradient>
@@ -322,32 +398,32 @@ export function ClassDetailScreen() {
 
           {tareasPorClase.length===0 ? (
             <View style={styles.emptyContainer}>
-              <IconSymbol name="doc.text" size={48} color="#5b6bff40"/>
+              <IconSymbol name="doc.text" size={48} color="#5b6bff40" />
               <ThemedText style={styles.emptyText}>No hay tareas aún</ThemedText>
             </View>
-          ):(
+          ) : (
             <FlatList
               data={tareasPorClase}
               keyExtractor={i=>i.id}
               renderItem={({item})=>(
                 <TouchableOpacity style={styles.taskCard} onPress={()=>handleTareaPress(item)}>
                   <View style={styles.taskIcon}>
-                    <IconSymbol name="doc.text.fill" size={20} color="#5b6bff"/>
+                    <IconSymbol name="doc.text.fill" size={20} color="#5b6bff" />
                   </View>
                   <View style={{flex:1}}>
                     <ThemedText style={styles.taskTitle}>{item.titulo}</ThemedText>
                     <ThemedText style={styles.taskDesc}>{item.descripcion}</ThemedText>
                     <View style={styles.taskMeta}>
-                      <IconSymbol name="star.fill" size={12} color="#5b6bff"/>
+                      <IconSymbol name="star.fill" size={12} color="#5b6bff" />
                       <ThemedText style={styles.metaText}>{item.puntos_maximos} pts</ThemedText>
                       <View style={styles.metaDot}/>
-                      <IconSymbol name="calendar" size={12} color="#7a9aaa"/>
+                      <IconSymbol name="calendar" size={12} color="#7a9aaa" />
                       <ThemedText style={styles.metaText}>
                         {new Date(item.fecha_entrega).toLocaleDateString()}
                       </ThemedText>
                     </View>
                   </View>
-                  <IconSymbol name="chevron.right" size={18} color="#5b6bff"/>
+                  <IconSymbol name="chevron.right" size={18} color="#5b6bff" />
                 </TouchableOpacity>
               )}
             />
@@ -355,16 +431,17 @@ export function ClassDetailScreen() {
         </View>
       )}
 
+      {/* ---- MIEMBROS ---- */}
       {tabActivo==='miembros' && (
         <View style={styles.tabContent}>
           {miembros.length===0 ? (
             <View style={styles.emptyContainer}>
-              <IconSymbol name="person" size={48} color="#5b6bff40"/>
+              <IconSymbol name="person" size={48} color="#5b6bff40" />
               <ThemedText style={styles.emptyText}>No hay miembros aún</ThemedText>
             </View>
-          ):(
+          ) : (
             <ScrollView nestedScrollEnabled>
-              {/* Profesor */}
+              {/* PROFESOR */}
               {miembros.some(m=>m.esProfesor) && (
                 <>
                   <View style={styles.sectionHeader}>
@@ -381,12 +458,12 @@ export function ClassDetailScreen() {
                         <ThemedText style={styles.miembroNombre}>{m.nombre} {m.apellido}</ThemedText>
                         <ThemedText style={styles.miembroCorreo}>{m.correo}</ThemedText>
                       </View>
-                      <IconSymbol name="star.fill" size={16} color="#ff6b6b"/>
+                      <IconSymbol name="star.fill" size={16} color="#ff6b6b" />
                     </View>
                   ))}
                 </>
               )}
-              {/* Alumnos */}
+              {/* ALUMNOS */}
               {miembros.some(m=>!m.esProfesor) && (
                 <>
                   <View style={styles.sectionHeader}>
@@ -405,7 +482,7 @@ export function ClassDetailScreen() {
                       </View>
                       {esProfesor && (
                         <TouchableOpacity style={styles.deleteBtn} onPress={()=>handleEliminarAlumno(m.id,`${m.nombre} ${m.apellido}`)}>
-                          <IconSymbol name="person.badge.minus" size={18} color="#ef4444"/>
+                          <IconSymbol name="person.badge.minus" size={18} color="#ef4444" />
                         </TouchableOpacity>
                       )}
                     </View>
@@ -417,6 +494,7 @@ export function ClassDetailScreen() {
         </View>
       )}
 
+      {/* ---- ANUNCIOS ---- */}
       {tabActivo==='anuncios' && (
         <KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined} keyboardVerticalOffset={80}>
           <FlatList
@@ -425,13 +503,14 @@ export function ClassDetailScreen() {
             contentContainerStyle={styles.anunciosList}
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <IconSymbol name="megaphone" size={48} color="#5b6bff40"/>
+                <IconSymbol name="megaphone" size={48} color="#5b6bff40" />
                 <ThemedText style={styles.emptyText}>No hay anuncios aún</ThemedText>
-              </View>}
+              </View>
+            }
             renderItem={({item})=>{
-              const esMio=item.autor_id===user?.id;
-              const puedeEliminar=esProfesor||esMio;
-              return(
+              const esMio = item.autor_id === user?.id;
+              const puedeEliminar = esProfesor || esMio;
+              return (
                 <View style={styles.anuncioCard}>
                   <View style={styles.anuncioHeader}>
                     <LinearGradient colors={['#5b6bff','#1AC952']} style={styles.anuncioAvatar} start={{x:0,y:0}} end={{x:1,y:1}}>
@@ -439,11 +518,12 @@ export function ClassDetailScreen() {
                     </LinearGradient>
                     <View style={{flex:1}}>
                       <ThemedText style={styles.anuncioAutor}>
-                        {esMio?`${item.autor_nombre} (Tú)`:item.autor_nombre}
+                        {esMio ? `${item.autor_nombre} (Tú)` : item.autor_nombre}
                       </ThemedText>
                       {item.fecha_publicacion && (
                         <ThemedText style={styles.anuncioFecha}>
-                          {new Date(item.fecha_publicacion).toLocaleDateString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}
+                          {new Date(item.fecha_publicacion).toLocaleDateString('es-MX',{
+                            day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})}
                         </ThemedText>
                       )}
                     </View>
@@ -458,7 +538,8 @@ export function ClassDetailScreen() {
               );
             }}
           />
-          {/* Input anuncio */}
+
+          {/* Input de anuncio */}
           <View style={styles.inputAnuncioContainer}>
             <TextInput
               style={styles.inputAnuncio}
@@ -468,17 +549,24 @@ export function ClassDetailScreen() {
               onChangeText={setNuevoAnuncio}
               multiline
             />
-            <LinearGradient colors={nuevoAnuncio.trim()?['#5b6bff','#1AC952']:['#e0e0e0','#e0e0e0']} start={{x:0,y:0}} end={{x:1,y:0}} style={styles.sendBtnGradient}>
-              <TouchableOpacity style={styles.sendBtn} disabled={enviandoAnuncio||!nuevoAnuncio.trim()} onPress={handlePublicarAnuncio}>
+            <LinearGradient
+              colors={nuevoAnuncio.trim()?['#5b6bff','#1AC952']:['#e0e0e0','#e0e0e0']}
+              start={{x:0,y:0}} end={{x:1,y:0}}
+              style={styles.sendBtnGradient}>
+              <TouchableOpacity
+                style={styles.sendBtn}
+                disabled={enviandoAnuncio||!nuevoAnuncio.trim()}
+                onPress={handlePublicarAnuncio}>
                 {enviandoAnuncio
-                  ?<ActivityIndicator color="#fff" size="small"/>
-                  :<IconSymbol name="paperplane.fill" size={18} color="#fff"/>}
+                  ? <ActivityIndicator color="#fff" size="small"/>
+                  : <IconSymbol name="paperplane.fill" size={18} color="#fff"/>}
               </TouchableOpacity>
             </LinearGradient>
           </View>
         </KeyboardAvoidingView>
       )}
 
+      {/* ---- RENDIMIENTO ---- */}
       {tabActivo==='rendimiento' && (
         <View style={styles.tabContent}>
           <View style={styles.performanceContainer}>
@@ -490,10 +578,157 @@ export function ClassDetailScreen() {
         </View>
       )}
 
-      {/* ──────── Modales y menú (se mantienen) ──────── */}
-      {/* Modal crear tarea, menú opciones, modal editar descripción  */}
-      {/* --------- Pega aquí los bloques de modal / menú EXACTAMENTE   */}
-      {/*           igual como estaban en tu código previo.            */}
+      {/* ─────────────────────────── MODAL CREAR TAREA ─────────────────────────── */}
+      <Modal transparent animationType="slide" visible={modalVisible} onRequestClose={()=>setModalVisible(false)}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <LinearGradient colors={['#5b6bff','#1AC952']} start={{x:0,y:0}} end={{x:1,y:0}} style={styles.modalHeader}>
+              <ThemedText style={styles.modalTitle}>Crear Tarea</ThemedText>
+              <TouchableOpacity onPress={()=>setModalVisible(false)}>
+                <IconSymbol name="xmark" size={22} color="#fff"/>
+              </TouchableOpacity>
+            </LinearGradient>
+
+            <ScrollView style={styles.modalForm}>
+              <ThemedText style={styles.label}>Título *</ThemedText>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ej: Ejercicio de Álgebra"
+                  placeholderTextColor="#999"
+                  value={nuevoTituloTarea}
+                  onChangeText={setNuevoTituloTarea}
+                />
+              </View>
+
+              <ThemedText style={styles.label}>Descripción</ThemedText>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={[styles.input,{minHeight:80}]}
+                  placeholder="Detalles de la tarea..."
+                  placeholderTextColor="#999"
+                  value={nuevaDescripcion}
+                  onChangeText={setNuevaDescripcion}
+                  multiline textAlignVertical="top"
+                />
+              </View>
+
+              <ThemedText style={styles.label}>Puntos Máximos</ThemedText>
+              <View style={styles.inputWrapper}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="100"
+                  placeholderTextColor="#999"
+                  value={nuevosPuntos}
+                  onChangeText={setNuevosPuntos}
+                  keyboardType="numeric"
+                />
+              </View>
+
+              <LinearGradient colors={['#5b6bff','#1AC952']} start={{x:0,y:0}} end={{x:1,y:0}} style={styles.createBtnGradient}>
+                <TouchableOpacity style={styles.createBtn} onPress={handleCrearTarea} disabled={creando}>
+                  {creando
+                    ? <ActivityIndicator color="#fff"/>
+                    : <ThemedText style={styles.createBtnText}>Crear Tarea</ThemedText>}
+                </TouchableOpacity>
+              </LinearGradient>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* ─────────────────────────── MENÚ OPCIONES ─────────────────────────── */}
+      <Modal transparent animationType="fade" visible={menuVisible} onRequestClose={()=>setMenuVisible(false)}>
+        <TouchableOpacity style={styles.menuOverlay} activeOpacity={1} onPress={()=>setMenuVisible(false)}>
+          <View style={styles.menuCard}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleVerCodigo}>
+              <View style={[styles.menuItemIcon,{backgroundColor:'#f5f5f5'}]}>
+                <IconSymbol name="key.fill" size={18} color="#5b6bff"/>
+              </View>
+              <View style={{flex:1}}>
+                <ThemedText style={styles.menuItemTitle}>Código de la clase</ThemedText>
+                <ThemedText style={styles.menuItemSub}>{clase.codigo_acceso}</ThemedText>
+              </View>
+              <IconSymbol name="doc.on.doc" size={16} color="#5b6bff"/>
+            </TouchableOpacity>
+
+            <View style={styles.menuDivider}/>
+
+            {esProfesor && (
+              <>
+                <TouchableOpacity style={styles.menuItem} onPress={()=>{
+                  setMenuVisible(false);
+                  setNuevaDescripcionClase(clase.materia || '');
+                  setModalEditDescripcion(true);
+                }}>
+                  <View style={[styles.menuItemIcon,{backgroundColor:'#e0f2ff'}]}>
+                    <IconSymbol name="pencil" size={18} color="#5b6bff"/>
+                  </View>
+                  <ThemedText style={styles.menuItemTitle}>Editar descripción</ThemedText>
+                </TouchableOpacity>
+
+                <View style={styles.menuDivider}/>
+              </>
+            )}
+
+            {!esProfesor && (
+              <TouchableOpacity style={styles.menuItem} onPress={handleSalirClase}>
+                <View style={[styles.menuItemIcon,{backgroundColor:'#fff0f0'}]}>
+                  <IconSymbol name="rectangle.portrait.and.arrow.right" size={18} color="#ef4444"/>
+                </View>
+                <View style={{flex:1}}>
+                  <ThemedText style={[styles.menuItemTitle,{color:'#ef4444'}]}>Salir de la clase</ThemedText>
+                  <ThemedText style={styles.menuItemSub}>Dejarás de ver esta clase</ThemedText>
+                </View>
+              </TouchableOpacity>
+            )}
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* ────────────────── MODAL EDITAR DESCRIPCIÓN ────────────────── */}
+      <Modal transparent animationType="slide" visible={modalEditDescripcion} onRequestClose={()=>setModalEditDescripcion(false)}>
+        <View style={styles.modalContainer}>
+          <View style={[styles.descContainer,{width:'85%',maxHeight:400,padding:20}]}>
+            <ThemedText style={[styles.descTitle,{marginBottom:16,fontSize:16}]}>
+              Editar descripción de la clase
+            </ThemedText>
+            <TextInput
+              style={[
+                styles.descText,
+                {borderWidth:1.5,borderColor:'#e0e0e0',borderRadius:10,paddingHorizontal:12,paddingVertical:10,minHeight:120,textAlignVertical:'top',fontSize:14,color:'#1a3a4a'},
+              ]}
+              placeholder="Ej: Matemáticas Avanzadas - Semestre 2024"
+              value={nuevaDescripcionClase}
+              onChangeText={setNuevaDescripcionClase}
+              multiline
+              editable={!editandoDescripcion}
+            />
+            <View style={{flexDirection:'row',gap:10,marginTop:16}}>
+              <TouchableOpacity style={[styles.cancelBtn,{flex:1,paddingVertical:12,backgroundColor:'#f5f5f5'}]} disabled={editandoDescripcion} onPress={()=>setModalEditDescripcion(false)}>
+                <ThemedText style={[styles.cancelBtnText,{color:'#1a3a4a'}]}>Cancelar</ThemedText>
+              </TouchableOpacity>
+              <LinearGradient colors={['#5b6bff','#1AC952']} start={{x:0,y:0}} end={{x:1,y:0}} style={[styles.createTaskGradient,{flex:1}]}>
+                <TouchableOpacity style={[styles.createTaskBtn,{paddingVertical:12}]} disabled={editandoDescripcion} onPress={async()=>{
+                  if(!nuevaDescripcionClase.trim()){Alert.alert('Error','La descripción no puede estar vacía');return;}
+                  setEditandoDescripcion(true);
+                  try{
+                    const {error}=await supabase.from('clases').update({materia:nuevaDescripcionClase.trim()}).eq('id',claseId);
+                    if(error) throw error;
+                    setClase(prev=>prev?{...prev,materia:nuevaDescripcionClase.trim() }:null);
+                    setModalEditDescripcion(false);
+                  }catch(e){Alert.alert('Error',(e as Error).message);}
+                  finally{setEditandoDescripcion(false);}
+                }}>
+                  {editandoDescripcion
+                    ? <ActivityIndicator color="#fff" size="small"/>
+                    : <ThemedText style={styles.createTaskBtnText}>Guardar</ThemedText>}
+                </TouchableOpacity>
+              </LinearGradient>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </LinearGradient>
   );
 }
@@ -555,6 +790,7 @@ export const styles = StyleSheet.create({
   sectionHeader:{flexDirection:'row',alignItems:'center',justifyContent:'center',marginHorizontal:12,marginVertical:16,gap:12},
   sectionLine:{flex:1,height:1.5,backgroundColor:'#5b6bff'},
   sectionTitle:{fontSize:16,fontWeight:'700',color:'#5b6bff',paddingHorizontal:8,letterSpacing:0.5},
+  deleteBtn:{padding:6},
 
   /* Anuncios */
   anunciosList:{paddingHorizontal:16,paddingBottom:8,gap:12},
@@ -569,9 +805,32 @@ export const styles = StyleSheet.create({
   inputAnuncio:{flex:1,backgroundColor:'#f5f5f5',borderWidth:1.5,borderColor:'#e0e0e0',borderRadius:20,paddingHorizontal:14,paddingVertical:8,fontSize:14,color:'#1a3a4a',maxHeight:100},
   sendBtnGradient:{width:42,height:42,borderRadius:21},
   sendBtn:{width:42,height:42,borderRadius:21,justifyContent:'center',alignItems:'center'},
-  deleteBtn:{padding:6},
 
-  /* Rendimiento (nuevo) */
+  /* Rendimiento */
   performanceContainer:{flex:1,justifyContent:'center',alignItems:'center',gap:12,paddingVertical:40},
   performanceText:{color:'#7a9aaa',fontSize:15,textAlign:'center'},
+
+  /* ---------- MODALES & MENÚ ---------- */
+  modalContainer:{flex:1,justifyContent:'flex-end',backgroundColor:'rgba(0,0,0,0.3)'},
+  modalContent:{backgroundColor:'#fff',borderTopLeftRadius:24,borderTopRightRadius:24,maxHeight:'90%',overflow:'hidden'},
+  modalHeader:{flexDirection:'row',justifyContent:'space-between',alignItems:'center',paddingHorizontal:20,paddingVertical:18},
+  modalTitle:{color:'#fff',fontSize:18,fontWeight:'bold'},
+  modalForm:{paddingHorizontal:20,paddingBottom:30},
+  label:{color:'#7a9aaa',fontSize:11,letterSpacing:0.8,marginTop:16,marginBottom:8},
+  inputWrapper:{backgroundColor:'#f5f5f5',borderWidth:1.5,borderColor:'#e0e0e0',borderRadius:12},
+  input:{paddingHorizontal:14,paddingVertical:12,fontSize:15,color:'#1a3a4a'},
+  createBtnGradient:{borderRadius:14,marginTop:24,marginBottom:20},
+  createBtn:{height:52,justifyContent:'center',alignItems:'center'},
+  createBtnText:{color:'#fff',fontSize:16,fontWeight:'bold'},
+
+  menuOverlay:{flex:1,backgroundColor:'rgba(0,0,0,0.3)',justifyContent:'flex-start',alignItems:'flex-end',paddingTop:110,paddingRight:16},
+  menuCard:{backgroundColor:'#fff',borderRadius:16,minWidth:240,shadowColor:'#000',shadowOffset:{width:0,height:4},shadowOpacity:0.15,shadowRadius:12,elevation:8,overflow:'hidden'},
+  menuItem:{flexDirection:'row',alignItems:'center',paddingHorizontal:16,paddingVertical:14,gap:12},
+  menuItemIcon:{width:36,height:36,borderRadius:10,justifyContent:'center',alignItems:'center'},
+  menuItemTitle:{fontSize:15,fontWeight:'600',color:'#1a3a4a'},
+  menuItemSub:{fontSize:12,color:'#7a9aaa',marginTop:2},
+  menuDivider:{height:1,backgroundColor:'#f0f4f6',marginHorizontal:16},
+
+  cancelBtn:{borderRadius:12,justifyContent:'center',alignItems:'center'},
+  cancelBtnText:{fontSize:15,fontWeight:'600'},
 });

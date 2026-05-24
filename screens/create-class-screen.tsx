@@ -24,17 +24,21 @@ export function CreateClassScreen() {
   const router = useRouter();
 
   const handleCreateClass = async () => {
+    console.log('🔵 handleCreateClass llamado');
     if (!nombre.trim()) {
       Alert.alert('Error', 'Por favor ingresa el nombre de la clase');
       return;
     }
     setLoading(true);
     try {
+      console.log('📝 Creando clase:', { nombre, materia });
       const codigo = await crearClase(nombre, materia);
+      console.log('✅ Clase creada con código:', codigo);
       Alert.alert('Éxito', `Clase creada. Código: ${codigo}`, [
         { text: 'OK', onPress: () => router.back() },
       ]);
     } catch (error) {
+      console.error('❌ Error al crear clase:', error);
       Alert.alert('Error', (error as Error).message);
     } finally {
       setLoading(false);

@@ -83,6 +83,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
   // CREAR CLASE
   const crearClase = async (nombre: string, materia: string): Promise<string> => {
     try {
+      console.log('📚 crearClase iniciado', { nombre, materia, userId: user?.id });
       if (!user) throw new Error('Usuario no autenticado');
 
       let codigo = generarCodigo();
@@ -102,6 +103,8 @@ export function ClassProvider({ children }: { children: ReactNode }) {
         }
       }
 
+      console.log('🔑 Código generado:', codigo);
+
       // Insertamos la clase sin mandar ningún campo 'miembros'
       const { data: nuevaClase, error } = await supabase
         .from('clases')
@@ -116,7 +119,12 @@ export function ClassProvider({ children }: { children: ReactNode }) {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ Error inserting clase:', error);
+        throw error;
+      }
+
+      console.log('✅ Clase insertada:', nuevaClase);
 
       if (nuevaClase) {
         // Vinculamos al profesor en la tabla inscripciones por consistencia escolar
@@ -132,6 +140,7 @@ export function ClassProvider({ children }: { children: ReactNode }) {
 
       return codigo;
     } catch (error: any) {
+      console.error('💥 Exception en crearClase:', error.message);
       Alert.alert('Error', error.message || 'No se pudo crear la clase');
       throw error;
     }
