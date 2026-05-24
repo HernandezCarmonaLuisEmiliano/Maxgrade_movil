@@ -72,7 +72,7 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
                   <TextInput
                     style={styles.input}
                     placeholder="Nombre..."
-                    placeholderTextColor="#aac0cc"
+                    placeholderTextColor="#999999"
                     value={nombre}
                     onChangeText={setNombre}
                     autoCapitalize="words"
@@ -83,7 +83,7 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
                   <TextInput
                     style={styles.input}
                     placeholder="Apellidos..."
-                    placeholderTextColor="#aac0cc"
+                    placeholderTextColor="#999999"
                     value={apellido}
                     onChangeText={setApellido}
                     autoCapitalize="words"
@@ -98,7 +98,7 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
                 <TextInput
                   style={styles.input}
                   placeholder="ejemplo@gmail.com"
-                  placeholderTextColor="#aac0cc"
+                  placeholderTextColor="#999999"
                   value={correo}
                   onChangeText={setCorreo}
                   keyboardType="email-address"
@@ -113,7 +113,7 @@ export function SignupScreen({ onLogin }: SignupScreenProps) {
                 <TextInput
                   style={[styles.input, { flex: 1 }]}
                   placeholder="Mínimo 8 caracteres"
-                  placeholderTextColor="#aac0cc"
+                  placeholderTextColor="#999999"
                   value={contraseña}
                   onChangeText={setContraseña}
                   secureTextEntry={!showPass}
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
   label: { color: '#7a9aaa', fontSize: 11, letterSpacing: 1, marginBottom: 8, marginTop: 16 },
   inputWrapper: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#f0f8fb', borderWidth: 1.5, borderColor: '#d0eaf2',
+    backgroundColor: '#f5f5f5', borderWidth: 1.5, borderColor: '#e0e0e0',
     borderRadius: 12, paddingHorizontal: 16, height: 52,
     marginBottom: 4,
   },

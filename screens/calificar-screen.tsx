@@ -135,7 +135,7 @@ export function CalificarScreen() {
 
   const getEstadoColor = (estado: string) => {
     if (estado === 'entregado') return '#10B981';
-    if (estado === 'calificado') return '#32a4b8';
+    if (estado === 'calificado') return '#5b6bff';
     return '#d0d0d0';
   };
 
@@ -147,8 +147,8 @@ export function CalificarScreen() {
 
   if (cargando) {
     return (
-      <LinearGradient colors={['#e0f7fa', '#f0fff4', '#e8f5fe']} style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#32a4b8" />
+      <LinearGradient colors={['#f5f5f5', '#ffffff', '#f9f9f9']} style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#5b6bff" />
       </LinearGradient>
     );
   }
@@ -159,7 +159,7 @@ export function CalificarScreen() {
 
       {/* Header con gradiente que cubre hasta el status bar */}
       <LinearGradient
-        colors={['#32c4d8', '#32e880']}
+        colors={['#5b6bff', '#6b7bff']}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
         style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -187,7 +187,7 @@ export function CalificarScreen() {
                   onPress={() => seleccionarAlumno(alumno)}>
                   <View style={[
                     styles.avatar,
-                    { backgroundColor: activo ? '#32a4b8' : getEstadoColor(alumno.estado) + '25' },
+                    { backgroundColor: activo ? '#5b6bff' : getEstadoColor(alumno.estado) + '25' },
                   ]}>
                     <ThemedText style={[
                       styles.avatarText,
@@ -198,7 +198,7 @@ export function CalificarScreen() {
                   </View>
                   <View style={{ flex: 1 }}>
                     <ThemedText
-                      style={[styles.sidebarName, activo && { color: '#32a4b8', fontWeight: '700' }]}
+                      style={[styles.sidebarName, activo && { color: '#5b6bff', fontWeight: '700' }]}
                       numberOfLines={1}>
                       {alumno.nombre}
                     </ThemedText>
@@ -218,7 +218,7 @@ export function CalificarScreen() {
         <View style={styles.panel}>
           {!alumnoSeleccionado ? (
             <View style={styles.panelEmpty}>
-              <IconSymbol name="person.crop.circle" size={48} color="#d0eaf2" />
+              <IconSymbol name="person.crop.circle" size={48} color="#e0e0e0" />
               <ThemedText style={styles.panelEmptyText}>Selecciona un alumno</ThemedText>
             </View>
           ) : (
@@ -227,7 +227,7 @@ export function CalificarScreen() {
               {/* Info alumno */}
               <View style={styles.panelHeader}>
                 <LinearGradient
-                  colors={['#32c4b8', '#32e880']}
+                  colors={['#5b6bff', '#6b7bff']}
                   style={styles.panelAvatar}
                   start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
                   <ThemedText style={styles.panelAvatarText}>
@@ -250,7 +250,7 @@ export function CalificarScreen() {
               {alumnoSeleccionado.nombre_archivo ? (
                 <View style={styles.archivoCard}>
                   <View style={styles.archivoIconBox}>
-                    <IconSymbol name="doc.fill" size={18} color="#32a4b8" />
+                    <IconSymbol name="doc.fill" size={18} color="#5b6bff" />
                   </View>
                   <View style={{ flex: 1 }}>
                     <ThemedText style={styles.archivoNombre} numberOfLines={1}>
@@ -267,7 +267,7 @@ export function CalificarScreen() {
                 </View>
               ) : (
                 <View style={styles.sinArchivoCard}>
-                  <IconSymbol name="tray" size={20} color="#aac0cc" />
+                  <IconSymbol name="tray" size={20} color="#999999" />
                   <ThemedText style={styles.sinArchivoText}>Sin archivo entregado</ThemedText>
                 </View>
               )}
@@ -279,7 +279,7 @@ export function CalificarScreen() {
                   <TextInput
                     style={styles.calificacionInput}
                     placeholder="0"
-                    placeholderTextColor="#aac0cc"
+                    placeholderTextColor="#999999"
                     value={calificacion}
                     onChangeText={setCalificacion}
                     keyboardType="decimal-pad"
@@ -296,7 +296,7 @@ export function CalificarScreen() {
                 <TextInput
                   style={styles.comentarioInput}
                   placeholder="Escribe retroalimentación para el alumno..."
-                  placeholderTextColor="#aac0cc"
+                  placeholderTextColor="#999999"
                   value={comentario}
                   onChangeText={setComentario}
                   multiline
@@ -308,7 +308,7 @@ export function CalificarScreen() {
               {/* Botón */}
               {alumnoSeleccionado.estado !== 'no_entregado' ? (
                 <LinearGradient
-                  colors={['#32c4d8', '#32e880']}
+                  colors={['#5b6bff', '#1AC952']}
                   start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
                   style={styles.guardarGradient}>
                   <TouchableOpacity style={styles.guardarBtn} onPress={handleGuardar} disabled={guardando}>
@@ -324,7 +324,7 @@ export function CalificarScreen() {
                 </LinearGradient>
               ) : (
                 <View style={styles.noEntregadoNote}>
-                  <IconSymbol name="exclamationmark.circle" size={16} color="#aac0cc" />
+                  <IconSymbol name="exclamationmark.circle" size={16} color="#999999" />
                   <ThemedText style={styles.noEntregadoText}>El alumno no ha entregado</ThemedText>
                 </View>
               )}
@@ -336,133 +336,209 @@ export function CalificarScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f0f8fb' },
+
+export const styles = StyleSheet.create({
+  /* ───────── Layout roots ───────── */
+  container: { flex: 1, backgroundColor: '#f5f5f5' },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
+  /* ───────── Header ───────── */
   header: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingBottom: 18, gap: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 18,
+    gap: 12,
   },
   backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    justifyContent: 'center', alignItems: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.25)',
   },
   headerTitle: { fontSize: 17, fontWeight: 'bold', color: '#fff' },
   headerSub: { fontSize: 12, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
 
+  /* ───────── Body split ───────── */
   body: { flex: 1, flexDirection: 'row' },
 
+  /* ───────── Sidebar (lista de alumnos) ───────── */
   sidebar: {
-    width: 120, backgroundColor: '#fff',
-    borderRightWidth: 1, borderRightColor: '#d0eaf2',
+    width: 120,
+    backgroundColor: '#fff',
+    borderRightWidth: 1,
+    borderRightColor: '#e0e0e0',
     paddingTop: 12,
   },
   sidebarTitle: {
-    fontSize: 10, fontWeight: '700', color: '#7a9aaa',
-    letterSpacing: 1, paddingHorizontal: 12, marginBottom: 8,
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#7a9aaa',
+    letterSpacing: 1,
+    paddingHorizontal: 12,
+    marginBottom: 8,
   },
   sidebarItem: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingVertical: 10, paddingHorizontal: 10,
-    gap: 8, position: 'relative',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 10,
+    gap: 8,
+    position: 'relative',
   },
-  sidebarItemActive: { backgroundColor: '#e0f7fa' },
+  sidebarItemActive: { backgroundColor: '#f5f5f5' },
+
   avatar: {
-    width: 34, height: 34, borderRadius: 17,
-    justifyContent: 'center', alignItems: 'center', flexShrink: 0,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexShrink: 0,
   },
   avatarText: { fontSize: 14, fontWeight: 'bold' },
+
   sidebarName: { fontSize: 12, color: '#1a3a4a', fontWeight: '500' },
   sidebarEstado: { fontSize: 10, marginTop: 1 },
+
   activeDot: {
-    position: 'absolute', right: 0, top: '50%',
-    width: 3, height: 24, borderRadius: 2,
-    backgroundColor: '#32a4b8', marginTop: -12,
+    position: 'absolute',
+    right: 0,
+    top: '50%',
+    width: 3,
+    height: 24,
+    borderRadius: 2,
+    backgroundColor: '#5b6bff',
+    marginTop: -12,
   },
 
+  /* ───────── Panel de calificación ───────── */
   panel: { flex: 1, padding: 16 },
+
+  /* estado “nada seleccionado” */
   panelEmpty: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
   panelEmptyText: { color: '#7a9aaa', fontSize: 14 },
 
+  /* cabecera con avatar + nombre */
   panelHeader: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#fff', borderRadius: 14,
-    borderWidth: 1.5, borderColor: '#d0eaf2',
-    padding: 14, marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    padding: 14,
+    marginBottom: 12,
   },
-  panelAvatar: {
-    width: 46, height: 46, borderRadius: 23,
-    justifyContent: 'center', alignItems: 'center',
-  },
+  panelAvatar: { width: 46, height: 46, borderRadius: 23, justifyContent: 'center', alignItems: 'center' },
   panelAvatarText: { color: '#fff', fontWeight: 'bold', fontSize: 20 },
   panelNombre: { fontSize: 15, fontWeight: '700', color: '#1a3a4a', marginBottom: 5 },
-  estadoBadge: {
-    alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
-  },
+
+  /* badge de estado */
+  estadoBadge: { alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
   estadoBadgeText: { fontSize: 11, fontWeight: '600' },
 
+  /* archivo entregado */
   archivoCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    backgroundColor: '#fff', borderRadius: 12,
-    borderWidth: 1.5, borderColor: '#d0eaf2',
-    padding: 12, marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    padding: 12,
+    marginBottom: 16,
   },
-  archivoIconBox: {
-    width: 36, height: 36, borderRadius: 9,
-    backgroundColor: '#e0f7fa', justifyContent: 'center', alignItems: 'center',
-  },
+  archivoIconBox: { width: 36, height: 36, borderRadius: 9, backgroundColor: '#f5f5f5', justifyContent: 'center', alignItems: 'center' },
   archivoNombre: { fontSize: 13, fontWeight: '600', color: '#1a3a4a' },
   archivoFecha: { fontSize: 11, color: '#7a9aaa', marginTop: 2 },
+
+  /* sin archivo */
   sinArchivoCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    backgroundColor: '#f0f8fb', borderRadius: 12,
-    borderWidth: 1.5, borderColor: '#d0eaf2', borderStyle: 'dashed',
-    padding: 12, marginBottom: 16, justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    borderStyle: 'dashed',
+    padding: 12,
+    marginBottom: 16,
+    justifyContent: 'center',
   },
   sinArchivoText: { fontSize: 13, color: '#7a9aaa' },
 
+  /* etiquetas */
   fieldLabel: {
-    fontSize: 10, fontWeight: '700', color: '#7a9aaa',
-    letterSpacing: 1, marginBottom: 8,
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#7a9aaa',
+    letterSpacing: 1,
+    marginBottom: 8,
   },
+
+  /* calificación */
   calificacionRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   calificacionInputWrapper: {
-    width: 80, height: 52,
-    backgroundColor: '#fff', borderRadius: 12,
-    borderWidth: 1.5, borderColor: '#d0eaf2',
-    justifyContent: 'center', alignItems: 'center',
+    width: 80,
+    height: 52,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   calificacionInput: {
-    fontSize: 24, fontWeight: 'bold', color: '#1a3a4a',
-    textAlign: 'center', width: '100%', paddingHorizontal: 8,
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1a3a4a',
+    textAlign: 'center',
+    width: '100%',
+    paddingHorizontal: 8,
   },
-  calificacionSep: { fontSize: 24, color: '#aac0cc', fontWeight: '300' },
+  calificacionSep: { fontSize: 24, color: '#999999', fontWeight: '300' },
   calificacionMax: { fontSize: 20, color: '#7a9aaa', fontWeight: '600' },
 
+  /* comentarios */
   comentarioWrapper: {
-    backgroundColor: '#fff', borderRadius: 12,
-    borderWidth: 1.5, borderColor: '#d0eaf2', marginBottom: 20,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    marginBottom: 20,
   },
   comentarioInput: {
-    paddingHorizontal: 12, paddingVertical: 10,
-    fontSize: 14, color: '#1a3a4a',
-    minHeight: 90, maxHeight: 140,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: '#1a3a4a',
+    minHeight: 90,
+    maxHeight: 140,
   },
 
+  /* botón guardar */
   guardarGradient: { borderRadius: 14 },
-  guardarBtn: {
-    flexDirection: 'row', justifyContent: 'center', alignItems: 'center',
-    gap: 8, paddingVertical: 14,
-  },
+  guardarBtn: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, paddingVertical: 14 },
   guardarBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
 
+  /* nota “no entregado” */
   noEntregadoNote: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 6, paddingVertical: 14,
-    backgroundColor: '#f0f8fb', borderRadius: 12,
-    borderWidth: 1.5, borderColor: '#d0eaf2', borderStyle: 'dashed',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 14,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    borderStyle: 'dashed',
   },
   noEntregadoText: { fontSize: 13, color: '#7a9aaa' },
 });

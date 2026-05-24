@@ -5,15 +5,16 @@ import { useAuth } from '@/context/auth-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
 const TIPOS_PROBLEMA = [
   'Problemas de cuenta y acceso',
@@ -36,26 +37,30 @@ export default function ExploreScreen() {
     {
       icon: 'book.fill',
       titulo: 'Sobre MaxGrade',
-      texto: 'La plataforma ideal para gestionar tus tareas escolares, recibir notificaciones personalizadas y conectar con tu grupo :)',
-      color: ['#5b6bff', '#1AC952'] as [string, string],
+      texto:
+        'La plataforma ideal para gestionar tus tareas escolares, recibir notificaciones personalizadas y conectar con tu grupo :)',
+      color: ['#5b6bff', '#6b7bff'] as [string, string],
     },
     {
       icon: 'plus.circle.fill',
       titulo: 'Crear una Clase',
-      texto: 'Presiona el botón "Crear Clase" en la pantalla principal, ingresa el nombre y descripción. Recibirás un código único de 6 caracteres.',
-      color: ['#5b6bff', '#1AC952'] as [string, string],
+      texto:
+        'Presiona el botón "Crear Clase" en la pantalla principal, ingresa el nombre y descripción. Recibirás un código único de 6 caracteres.',
+      color: ['#5b6bff', '#6b7bff'] as [string, string],
     },
     {
       icon: 'checkmark.circle.fill',
       titulo: 'Unirse a una Clase',
-      texto: 'Presiona el botón "Unirse" e ingresa el código de 6 caracteres proporcionado por tu profesor.',
-      color: ['#5b6bff', '#1AC952'] as [string, string],
+      texto:
+        'Presiona el botón "Unirse" e ingresa el código de 6 caracteres proporcionado por tu profesor.',
+      color: ['#5b6bff', '#6b7bff'] as [string, string],
     },
     {
       icon: 'bell.fill',
       titulo: 'Recordatorios',
-      texto: 'Toca tu avatar en la esquina superior derecha de la pantalla de clases para configurar la hora en que recibirás recordatorios de tareas pendientes.',
-      color: ['#5b6bff', '#1AC952'] as [string, string],
+      texto:
+        'Toca tu avatar en la esquina superior derecha de la pantalla de clases para configurar la hora en que recibirás recordatorios de tareas pendientes.',
+      color: ['#5b6bff', '#6b7bff'] as [string, string],
     },
   ];
 
@@ -84,7 +89,7 @@ export default function ExploreScreen() {
       setDescripcion('');
       setModalVisible(false);
       Alert.alert('✓ Enviado', 'Tu reporte fue enviado. Lo revisaremos pronto.');
-    } catch (error) {
+    } catch {
       Alert.alert('Error', 'No se pudo enviar el reporte. Intenta de nuevo.');
     } finally {
       setEnviando(false);
@@ -102,17 +107,18 @@ export default function ExploreScreen() {
     <LinearGradient colors={['#f5f5f5', '#ffffff', '#f9f9f9']} style={{ flex: 1 }}>
       {/* Header */}
       <LinearGradient
-        colors={['#5b6bff', '#1AC952']}
-        start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+        colors={['#5b6bff', '#6b7bff']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
         style={styles.header}>
         <View style={{ flex: 1 }}>
           <ThemedText style={styles.headerTitle}>Ayuda</ThemedText>
-          <ThemedText style={styles.headerSubtitle}>Todo lo que necesitas saber</ThemedText>
+          <ThemedText style={styles.headerSubtitle}>
+            Todo lo que necesitas saber
+          </ThemedText>
         </View>
         {/* Botón de soporte */}
-        <TouchableOpacity
-          style={styles.soporteBtn}
-          onPress={() => setModalVisible(true)}>
+        <TouchableOpacity style={styles.soporteBtn} onPress={() => setModalVisible(true)}>
           <IconSymbol name="questionmark.circle.fill" size={20} color="#fff" />
           <ThemedText style={styles.soporteBtnText}>Soporte</ThemedText>
         </TouchableOpacity>
@@ -122,9 +128,10 @@ export default function ExploreScreen() {
         {/* Logo decorativo */}
         <View style={styles.logoContainer}>
           <LinearGradient
-            colors={['#5b6bff', '#1AC952']}
+            colors={['#5b6bff', '#6b7bff']}
             style={styles.logoBox}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}>
             <ThemedText style={styles.logoLetter}>M</ThemedText>
           </LinearGradient>
           <ThemedText style={styles.logoMax}>Max</ThemedText>
@@ -137,7 +144,8 @@ export default function ExploreScreen() {
             <LinearGradient
               colors={s.color}
               style={styles.cardIcon}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}>
               <IconSymbol name={s.icon as any} size={22} color="#fff" />
             </LinearGradient>
             <View style={{ flex: 1 }}>
@@ -150,13 +158,16 @@ export default function ExploreScreen() {
         {/* Banner de soporte */}
         <TouchableOpacity onPress={() => setModalVisible(true)}>
           <LinearGradient
-            colors={['#5b6bff', '#1AC952']}
-            start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+            colors={['#5b6bff', '#6b7bff']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
             style={styles.soporteBanner}>
             <IconSymbol name="headphones" size={28} color="#fff" />
             <View style={{ flex: 1 }}>
               <ThemedText style={styles.bannerTitle}>¿Tienes un problema?</ThemedText>
-              <ThemedText style={styles.bannerSub}>Envíanos un reporte y lo resolveremos</ThemedText>
+              <ThemedText style={styles.bannerSub}>
+                Envíanos un reporte y lo resolveremos
+              </ThemedText>
             </View>
             <IconSymbol name="chevron.right" size={18} color="rgba(255,255,255,0.8)" />
           </LinearGradient>
@@ -176,20 +187,30 @@ export default function ExploreScreen() {
           <View style={styles.modalCard}>
             {/* Header del modal */}
             <LinearGradient
-              colors={['#5b6bff', '#1AC952']}
-              start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+              colors={['#5b6bff', '#6b7bff']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
               style={styles.modalHeader}>
               <IconSymbol name="headphones" size={22} color="#fff" />
               <ThemedText style={styles.modalTitle}>Soporte</ThemedText>
             </LinearGradient>
 
-            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
+            <KeyboardAwareScrollView
+              style={styles.modalBody}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
+              extraScrollHeight={40}
+              enableOnAndroid>
               {/* Tipo de problema */}
               <ThemedText style={styles.fieldLabel}>SELECCIONA EL TIPO DE PROBLEMA</ThemedText>
               <TouchableOpacity
                 style={styles.dropdown}
                 onPress={() => setDropdownVisible(!dropdownVisible)}>
-                <ThemedText style={[styles.dropdownText, !tipoSeleccionado && { color: '#aac0cc' }]}>
+                <ThemedText
+                  style={[
+                    styles.dropdownText,
+                    !tipoSeleccionado && { color: '#999999' },
+                  ]}>
                   {tipoSeleccionado || 'Elige una opción...'}
                 </ThemedText>
                 <IconSymbol
@@ -212,10 +233,14 @@ export default function ExploreScreen() {
                         setTipoSeleccionado(tipo);
                         setDropdownVisible(false);
                       }}>
-                      <ThemedText style={[
-                        styles.dropdownItemText,
-                        tipoSeleccionado === tipo && { color: '#5b6bff', fontWeight: '600' },
-                      ]}>
+                      <ThemedText
+                        style={[
+                          styles.dropdownItemText,
+                          tipoSeleccionado === tipo && {
+                            color: '#5b6bff',
+                            fontWeight: '600',
+                          },
+                        ]}>
                         {tipo}
                       </ThemedText>
                       {tipoSeleccionado === tipo && (
@@ -227,12 +252,14 @@ export default function ExploreScreen() {
               )}
 
               {/* Descripción */}
-              <ThemedText style={[styles.fieldLabel, { marginTop: 16 }]}>DESCRIPCIÓN DEL PROBLEMA</ThemedText>
+              <ThemedText style={[styles.fieldLabel, { marginTop: 16 }]}>
+                DESCRIPCIÓN DEL PROBLEMA
+              </ThemedText>
               <View style={styles.inputWrapper}>
                 <TextInput
                   style={styles.textArea}
                   placeholder="Describe el problema con el mayor detalle posible..."
-                  placeholderTextColor="#aac0cc"
+                  placeholderTextColor="#999999"
                   value={descripcion}
                   onChangeText={setDescripcion}
                   multiline
@@ -246,24 +273,26 @@ export default function ExploreScreen() {
                   <ThemedText style={styles.cancelBtnText}>Cancelar</ThemedText>
                 </TouchableOpacity>
                 <LinearGradient
-                  colors={['#32c4d8', '#32e880']}
-                  start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                  colors={['#5b6bff', '#6b7bff']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
                   style={styles.enviarBtnGradient}>
                   <TouchableOpacity
                     style={styles.enviarBtn}
                     onPress={handleEnviarReporte}
                     disabled={enviando}>
-                    {enviando
-                      ? <ActivityIndicator color="#fff" size="small" />
-                      : <>
-                          <IconSymbol name="paperplane.fill" size={16} color="#fff" />
-                          <ThemedText style={styles.enviarBtnText}>Enviar</ThemedText>
-                        </>
-                    }
+                    {enviando ? (
+                      <ActivityIndicator color="#fff" size="small" />
+                    ) : (
+                      <>
+                        <IconSymbol name="paperplane.fill" size={16} color="#fff" />
+                        <ThemedText style={styles.enviarBtnText}>Enviar</ThemedText>
+                      </>
+                    )}
                   </TouchableOpacity>
                 </LinearGradient>
               </View>
-            </ScrollView>
+            </KeyboardAwareScrollView>
           </View>
         </View>
       </Modal>
@@ -296,35 +325,57 @@ const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 36 },
 
   logoContainer: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'center', gap: 8, marginVertical: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    marginVertical: 24,
   },
   logoBox: {
-    width: 40, height: 40, borderRadius: 10,
-    justifyContent: 'center', alignItems: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   logoLetter: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
-  logoMax: { fontSize: 22, fontWeight: 'bold', color: '#32a4b8' },
-  logoGrade: { fontSize: 22, fontWeight: 'bold', color: '#32b880' },
+  logoMax: { fontSize: 22, fontWeight: 'bold', color: '#5b6bff' },
+  logoGrade: { fontSize: 22, fontWeight: 'bold', color: '#9999ff' },
 
   card: {
-    flexDirection: 'row', alignItems: 'flex-start', gap: 14,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 14,
     backgroundColor: 'rgba(255,255,255,0.85)',
-    borderRadius: 16, borderWidth: 1.5, borderColor: '#d0eaf2',
-    padding: 16, marginBottom: 12,
-    shadowColor: '#32c4b8', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07, shadowRadius: 8, elevation: 2,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: '#5b6bff',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 2,
   },
   cardIcon: {
-    width: 46, height: 46, borderRadius: 14,
-    justifyContent: 'center', alignItems: 'center',
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cardTitle: { fontSize: 15, fontWeight: '700', color: '#1a3a4a', marginBottom: 6 },
   cardText: { fontSize: 13, color: '#7a9aaa', lineHeight: 20 },
 
   soporteBanner: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    borderRadius: 16, padding: 18, marginTop: 4, marginBottom: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    borderRadius: 16,
+    padding: 18,
+    marginTop: 4,
+    marginBottom: 16,
   },
   bannerTitle: { fontSize: 15, fontWeight: '700', color: '#fff' },
   bannerSub: { fontSize: 12, color: 'rgba(255,255,255,0.85)', marginTop: 3 },
@@ -332,12 +383,15 @@ const styles = StyleSheet.create({
   footer: { alignItems: 'center', marginTop: 4 },
   versionBadge: {
     backgroundColor: 'rgba(255,255,255,0.7)',
-    borderRadius: 20, paddingHorizontal: 16, paddingVertical: 6,
-    borderWidth: 1, borderColor: '#d0eaf2',
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
   },
   versionText: { fontSize: 12, color: '#7a9aaa' },
 
-  // Modal
+  /* Modal */
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.35)',
@@ -372,9 +426,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: '#f0f8fb',
+    backgroundColor: '#f5f5f5',
     borderWidth: 1.5,
-    borderColor: '#d0eaf2',
+    borderColor: '#e0e0e0',
     borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 13,
@@ -383,7 +437,7 @@ const styles = StyleSheet.create({
   dropdownList: {
     backgroundColor: '#fff',
     borderWidth: 1.5,
-    borderColor: '#d0eaf2',
+    borderColor: '#e0e0e0',
     borderRadius: 12,
     marginTop: 4,
     overflow: 'hidden',
@@ -397,13 +451,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#f0f4f6',
   },
-  dropdownItemSelected: { backgroundColor: '#e8f9fb' },
+  dropdownItemSelected: { backgroundColor: '#e9e7ff' },
   dropdownItemText: { fontSize: 14, color: '#1a3a4a' },
 
   inputWrapper: {
-    backgroundColor: '#f0f8fb',
+    backgroundColor: '#f5f5f5',
     borderWidth: 1.5,
-    borderColor: '#d0eaf2',
+    borderColor: '#e0e0e0',
     borderRadius: 12,
   },
   textArea: {

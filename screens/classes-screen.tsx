@@ -8,17 +8,27 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    FlatList,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from 'react-native';
 
+/* ──────────────────────────────────────────────────────────────────────────
+ *  Paleta de colores (igual a LoginScreen)
+ * ─────────────────────────────────────────────────────────────────────── */
+const BLUE = '#5b6bff';   // primario
+const PURPLE = '#6b7bff'; // gradiente secundario (antes verde)
+const GRAY_BG = 'rgba(255,255,255,0.6)';
+
+/* ──────────────────────────────────────────────────────────────────────────
+ *  Componentes auxiliares
+ * ─────────────────────────────────────────────────────────────────────── */
 interface ClasseCardProps {
   clase: any;
   onPress: () => void;
@@ -28,17 +38,16 @@ function ClasseCard({ clase, onPress }: ClasseCardProps) {
   return (
     <TouchableOpacity style={styles.cardContainer} onPress={onPress}>
       <View style={{ flex: 1, paddingRight: 8 }}>
-        <ThemedText style={styles.cardTitle}>
-          {clase.nombre_clase || 'Clase sin nombre'}
-        </ThemedText>
+        <ThemedText style={styles.cardTitle}>{clase.nombre_clase || 'Clase sin nombre'}</ThemedText>
         <ThemedText style={styles.cardDesc}>{clase.materia || 'Sin descripción'}</ThemedText>
         <ThemedText style={styles.cardCode}>Código: {clase.codigo_acceso}</ThemedText>
       </View>
-      <IconSymbol name="chevron.right" size={20} color="#5b6bff" />
+      <IconSymbol name="chevron.right" size={20} color={BLUE} />
     </TouchableOpacity>
   );
 }
 
+/* ────────────────────────────────────────────────────────────────────────── */
 interface ClassesScreenProps {
   onCreateClass: () => void;
   onJoinClass: () => void;
@@ -89,10 +98,7 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
     setHoraPreferida(hora);
     setGuardandoHora(true);
     try {
-      const { error } = await supabase
-        .from('usuarios')
-        .update({ hora_preferida: hora })
-        .eq('id', user?.id);
+      const { error } = await supabase.from('usuarios').update({ hora_preferida: hora }).eq('id', user?.id);
       if (error) throw error;
       Alert.alert('✓ Guardado', `Recibirás recordatorios a las ${HORAS[hora].label}`);
     } catch {
@@ -108,53 +114,42 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
 
   return (
     <LinearGradient colors={['#f5f5f5', '#ffffff', '#f9f9f9']} style={{ flex: 1 }}>
+      {/* ─── Header ─── */}
       <View style={styles.header}>
         <View>
           <ThemedText style={styles.headerTitle}>Mis Clases</ThemedText>
-          <ThemedText style={styles.greeting}>
-            {user?.nombre} {user?.apellido}
-          </ThemedText>
+          <ThemedText style={styles.greeting}>{user?.nombre} {user?.apellido}</ThemedText>
         </View>
         <TouchableOpacity onPress={() => setDrawerVisible(true)}>
-          <LinearGradient
-            colors={['#5b6bff', '#1AC952']}
-            style={styles.profileBtn}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}>
-            <ThemedText style={styles.profileInitial}>
-              {(user?.nombre?.[0] ?? '?').toUpperCase()}
-            </ThemedText>
+          <LinearGradient colors={[BLUE, PURPLE]} style={styles.profileBtn} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+            <ThemedText style={styles.profileInitial}>{(user?.nombre?.[0] ?? '?').toUpperCase()}</ThemedText>
           </LinearGradient>
         </TouchableOpacity>
       </View>
 
+      {/* ─── Botones crear / unirse ─── */}
       <View style={styles.buttonsContainer}>
-        <LinearGradient
-          colors={['#5b6bff', '#1AC952']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[styles.actionGradient, { marginRight: 8 }]}>
+        <LinearGradient colors={[BLUE, PURPLE]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={[styles.actionGradient, { marginRight: 8 }]}>
           <TouchableOpacity style={styles.actionButton} onPress={onCreateClass}>
             <IconSymbol name="plus.circle.fill" size={18} color="#fff" />
             <ThemedText style={styles.actionButtonText}>Crear Clase</ThemedText>
           </TouchableOpacity>
         </LinearGradient>
 
-        <TouchableOpacity
-          style={styles.actionButtonOutline}
-          onPress={onJoinClass}>
-          <IconSymbol name="plus.circle" size={18} color="#5b6bff" />
+        <TouchableOpacity style={styles.actionButtonOutline} onPress={onJoinClass}>
+          <IconSymbol name="plus.circle" size={18} color={BLUE} />
           <ThemedText style={styles.actionButtonOutlineText}>Unirse</ThemedText>
         </TouchableOpacity>
       </View>
 
+      {/* ─── Lista de clases / estados ─── */}
       {loading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color="#5b6bff" />
+          <ActivityIndicator size="large" color={BLUE} />
         </View>
       ) : clases.length === 0 ? (
         <View style={styles.emptyContainer}>
-          <IconSymbol name="book.closed" size={52} color="#5b6bff40" />
+          <IconSymbol name="book.closed" size={52} color={`${BLUE}40`} />
           <ThemedText style={styles.emptyText}>No tienes clases aún</ThemedText>
           <ThemedText style={styles.emptySubtext}>Crea una nueva o únete con un código</ThemedText>
         </View>
@@ -162,70 +157,47 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
         <FlatList
           data={clases}
           keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <ClasseCard clase={item} onPress={() => handleClassPress(item)} />
-          )}
+          renderItem={({ item }) => <ClasseCard clase={item} onPress={() => handleClassPress(item)} />}
           contentContainerStyle={styles.listContainer}
         />
       )}
 
+      {/* ─── Drawer lateral ─── */}
       <Modal visible={drawerVisible} transparent animationType="none">
         <TouchableWithoutFeedback onPress={() => setDrawerVisible(false)}>
           <View style={styles.drawerOverlay} />
         </TouchableWithoutFeedback>
 
         <View style={styles.drawer}>
-          <LinearGradient
-            colors={['#f5f5f5', '#ffffff']}
-            style={styles.drawerProfile}>
-            <LinearGradient
-              colors={['#5b6bff', '#1AC952']}
-              style={styles.drawerAvatar}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}>
-              <ThemedText style={styles.drawerAvatarText}>
-                {(user?.nombre?.[0] ?? '?').toUpperCase()}
-              </ThemedText>
+          <LinearGradient colors={['#f5f5f5', '#ffffff']} style={styles.drawerProfile}>
+            <LinearGradient colors={[BLUE, PURPLE]} style={styles.drawerAvatar} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+              <ThemedText style={styles.drawerAvatarText}>{(user?.nombre?.[0] ?? '?').toUpperCase()}</ThemedText>
             </LinearGradient>
             <View>
-              <ThemedText style={styles.drawerName}>
-                {user?.nombre} {user?.apellido}
-              </ThemedText>
+              <ThemedText style={styles.drawerName}>{user?.nombre} {user?.apellido}</ThemedText>
               <ThemedText style={styles.drawerEmail}>{user?.correo}</ThemedText>
             </View>
           </LinearGradient>
 
+          {/* Preferencias */}
           <View style={styles.drawerSection}>
             <View style={styles.drawerSectionHeader}>
-              <IconSymbol name="bell.fill" size={16} color="#5b6bff" />
+              <IconSymbol name="bell.fill" size={16} color={BLUE} />
               <ThemedText style={styles.drawerSectionTitle}>Hora de recordatorio</ThemedText>
             </View>
-            <ThemedText style={styles.drawerSectionSubtitle}>
-              Recibirás notificaciones de tareas pendientes a esta hora
-            </ThemedText>
+            <ThemedText style={styles.drawerSectionSubtitle}>Recibirás notificaciones de tareas pendientes a esta hora</ThemedText>
 
             {guardandoHora ? (
-              <ActivityIndicator color="#5b6bff" style={{ marginTop: 12 }} />
+              <ActivityIndicator color={BLUE} style={{ marginTop: 12 }} />
             ) : (
               <ScrollView style={styles.horasList} showsVerticalScrollIndicator={false} nestedScrollEnabled>
                 {HORAS.map((h) => (
                   <TouchableOpacity
                     key={h.value}
-                    style={[
-                      styles.horaItem,
-                      horaPreferida === h.value && styles.horaItemActive,
-                    ]}
+                    style={[styles.horaItem, horaPreferida === h.value && styles.horaItemActive]}
                     onPress={() => handleGuardarHora(h.value)}>
-                    <ThemedText
-                      style={[
-                        styles.horaText,
-                        horaPreferida === h.value && styles.horaTextActive,
-                      ]}>
-                      {h.label}
-                    </ThemedText>
-                    {horaPreferida === h.value && (
-                      <IconSymbol name="checkmark" size={14} color="#fff" />
-                    )}
+                    <ThemedText style={[styles.horaText, horaPreferida === h.value && styles.horaTextActive]}>{h.label}</ThemedText>
+                    {horaPreferida === h.value && <IconSymbol name="checkmark" size={14} color="#fff" />}
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -242,8 +214,10 @@ export function ClassesScreen({ onCreateClass, onJoinClass }: ClassesScreenProps
   );
 }
 
+/* ──────────────────────────────────────────────────────────────────────────
+ *  Estilos
+ * ─────────────────────────────────────────────────────────────────────── */
 const styles = StyleSheet.create({
-  // Comosuicidarsebuscar
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -254,42 +228,60 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 26, fontWeight: 'bold', color: '#1a3a4a' },
   greeting: { fontSize: 13, color: '#7a9aaa', marginTop: 2 },
+
   profileBtn: {
-    width: 44, height: 44, borderRadius: 22,
-    justifyContent: 'center', alignItems: 'center',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   profileInitial: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
 
-  buttonsContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingBottom: 16,
-  },
+  buttonsContainer: { flexDirection: 'row', paddingHorizontal: 20, paddingBottom: 16 },
   actionGradient: { flex: 1, borderRadius: 12 },
   actionButton: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, paddingVertical: 13,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 13,
   },
   actionButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 14 },
   actionButtonOutline: {
-    flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, paddingVertical: 13, borderRadius: 12,
-    borderWidth: 1.5, borderColor: '#5b6bff', backgroundColor: 'rgba(255,255,255,0.6)',
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 13,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: BLUE,
+    backgroundColor: GRAY_BG,
   },
-  actionButtonOutlineText: { color: '#5b6bff', fontWeight: 'bold', fontSize: 14 },
+  actionButtonOutlineText: { color: BLUE, fontWeight: 'bold', fontSize: 14 },
 
   listContainer: { paddingHorizontal: 20, paddingBottom: 24 },
   cardContainer: {
     backgroundColor: 'rgba(255,255,255,0.85)',
-    borderRadius: 16, borderWidth: 1.5, borderColor: '#e0e0e0',
-    padding: 16, marginBottom: 12,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    shadowColor: '#5b6bff', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08, shadowRadius: 8, elevation: 3,
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    shadowColor: BLUE,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   cardTitle: { fontSize: 16, fontWeight: '600', color: '#1a3a4a', marginBottom: 4 },
   cardDesc: { fontSize: 13, color: '#7a9aaa', marginBottom: 6 },
-  cardCode: { fontSize: 12, color: '#5b6bff' },
+  cardCode: { fontSize: 12, color: BLUE },
 
   loaderContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 40 },
@@ -297,43 +289,76 @@ const styles = StyleSheet.create({
   emptySubtext: { fontSize: 14, color: '#7a9aaa', marginTop: 8, textAlign: 'center' },
 
   drawerOverlay: {
-    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'rgba(0,0,0,0.3)',
   },
   drawer: {
-    position: 'absolute', top: 0, right: 0, bottom: 0, width: '78%',
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    width: '78%',
     backgroundColor: '#fff',
-    shadowColor: '#000', shadowOffset: { width: -2, height: 0 },
-    shadowOpacity: 0.15, shadowRadius: 12, elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: -2, height: 0 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 10,
   },
   drawerProfile: {
-    flexDirection: 'row', alignItems: 'center', gap: 14,
-    padding: 24, paddingTop: 60,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    padding: 24,
+    paddingTop: 60,
   },
   drawerAvatar: {
-    width: 52, height: 52, borderRadius: 26,
-    justifyContent: 'center', alignItems: 'center',
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   drawerAvatarText: { color: '#fff', fontWeight: 'bold', fontSize: 22 },
   drawerName: { fontSize: 16, fontWeight: '600', color: '#1a3a4a' },
   drawerEmail: { fontSize: 12, color: '#7a9aaa', marginTop: 2 },
+
   drawerSection: { flex: 1, padding: 20 },
   drawerSectionHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
   drawerSectionTitle: { fontSize: 15, fontWeight: '600', color: '#1a3a4a', marginLeft: 8 },
   drawerSectionSubtitle: { fontSize: 12, color: '#7a9aaa', marginBottom: 14, lineHeight: 18 },
+
   horasList: { flex: 1 },
   horaItem: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 10, paddingHorizontal: 14,
-    borderRadius: 10, borderWidth: 1.5, borderColor: '#e0e0e0',
-    backgroundColor: '#f5f5f5', marginBottom: 6,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    backgroundColor: '#f5f5f5',
+    marginBottom: 6,
   },
-  horaItemActive: { backgroundColor: '#5b6bff', borderColor: '#5b6bff' },
+  horaItemActive: {
+    backgroundColor: BLUE,
+    borderColor: BLUE,
+  },
   horaText: { fontSize: 14, color: '#1a3a4a' },
   horaTextActive: { color: '#fff' },
+
   logoutItem: {
-    flexDirection: 'row', alignItems: 'center', gap: 10,
-    padding: 20, borderTopWidth: 1, borderTopColor: '#e0e0e0',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e0e0e0',
   },
   logoutText: { color: '#ef4444', fontWeight: '600', fontSize: 15 },
 });

@@ -68,7 +68,7 @@ export function LoginScreen({ onSignUp }: LoginScreenProps) {
                 <TextInput
                   style={styles.input}
                   placeholder="Ejemplo@gmail.com"
-                  placeholderTextColor="#aac0cc"
+                  placeholderTextColor="#999999"
                   value={correo}
                   onChangeText={setCorreo}
                   keyboardType="email-address"
@@ -83,7 +83,7 @@ export function LoginScreen({ onSignUp }: LoginScreenProps) {
                 <TextInput
                   style={[styles.input, { flex: 1 }]}
                   placeholder="Ingresa tu contraseña"
-                  placeholderTextColor="#aac0cc"
+                  placeholderTextColor="#999999"
                   value={contraseña}
                   onChangeText={setContraseña}
                   secureTextEntry={!showPass}
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
   label: { color: '#7a9aaa', fontSize: 11, letterSpacing: 1, marginBottom: 8, marginTop: 16 },
   inputWrapper: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: '#f0f8fb', borderWidth: 1.5, borderColor: '#d0eaf2',
+    backgroundColor: '#f5f5f5', borderWidth: 1.5, borderColor: '#e0e0e0',
     borderRadius: 12, paddingHorizontal: 16, height: 52,
   },
   input: { flex: 1, color: '#1a3a4a', fontSize: 15 },

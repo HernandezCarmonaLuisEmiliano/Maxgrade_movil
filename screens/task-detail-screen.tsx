@@ -278,7 +278,7 @@ export function TaskDetailScreen() {
     <View style={styles.container}>
       {/* Header */}
       <LinearGradient
-        colors={['#5b6bff', '#1AC952']}
+        colors={['#5b6bff', '#6b7bff']}
         start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
         style={styles.header}>
         <TouchableOpacity style={styles.backBtn} onPress={() => router.back()}>
@@ -354,7 +354,7 @@ export function TaskDetailScreen() {
 
             <View style={styles.actionsContainer}>
               {!entrega || entrega.estado === 'pendiente' ? (
-                <LinearGradient colors={['#5b6bff', '#1AC952']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.actionGradient}>
+                <LinearGradient colors={['#5b6bff', '#6b7bff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.actionGradient}>
                   <TouchableOpacity style={styles.actionBtn} onPress={handleSeleccionarArchivo} disabled={subiendo}>
                     <IconSymbol name="doc.badge.plus" size={18} color="#fff" />
                     <ThemedText style={styles.actionBtnText}>{subiendo ? 'Subiendo...' : 'Subir Archivo'}</ThemedText>
@@ -362,7 +362,7 @@ export function TaskDetailScreen() {
                 </LinearGradient>
               ) : (
                 <View style={{ gap: 10 }}>
-                  <LinearGradient colors={['#5b6bff', '#1AC952']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.actionGradient}>
+                  <LinearGradient colors={['#5b6bff', '#6b7bff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.actionGradient}>
                     <TouchableOpacity style={styles.actionBtn} onPress={handleSeleccionarArchivo} disabled={subiendo}>
                       <IconSymbol name="arrow.clockwise" size={18} color="#fff" />
                       <ThemedText style={styles.actionBtnText}>Resubir</ThemedText>
@@ -400,7 +400,7 @@ export function TaskDetailScreen() {
                 <ThemedText style={styles.sectionTitle}>Comentarios</ThemedText>
                 {entrega.comentario_profesor && (
                   <View style={styles.commentCardProfe}>
-                    <LinearGradient colors={['#5b6bff', '#1AC952']} style={styles.commentAvatar} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+                    <LinearGradient colors={['#5b6bff', '#6b7bff']} style={styles.commentAvatar} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
                       <IconSymbol name="person.fill" size={14} color="#fff" />
                     </LinearGradient>
                     <View style={{ flex: 1 }}>
@@ -434,7 +434,7 @@ export function TaskDetailScreen() {
         {esProfesor && (
           <View style={styles.teacherSection}>
             <ThemedText style={styles.sectionTitle}>Entregas de Estudiantes</ThemedText>
-            <LinearGradient colors={['#5b6bff', '#1AC952']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.actionGradient}>
+            <LinearGradient colors={['#5b6bff', '#6b7bff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.actionGradient}>
               <TouchableOpacity style={styles.actionBtn} onPress={handleAbrirEntregas}>
                 <IconSymbol name="person.2.fill" size={18} color="#fff" />
                 <ThemedText style={styles.actionBtnText}>Ver Entregas</ThemedText>
@@ -448,7 +448,7 @@ export function TaskDetailScreen() {
       <Modal visible={mostrarEntregas} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <LinearGradient colors={['#5b6bff', '#1AC952']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.modalHeader}>
+            <LinearGradient colors={['#5b6bff', '#6b7bff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.modalHeader}>
               <View style={{ flex: 1 }}>
                 <ThemedText style={styles.modalTitle}>Entregas</ThemedText>
                 <ThemedText style={styles.modalSubtitle}>{tarea.titulo}</ThemedText>
@@ -527,7 +527,7 @@ export function TaskDetailScreen() {
                       {alumno.estado === 'entregado' && (
                         <TouchableOpacity
                           onPress={() => { setAlumnoSeleccionado(alumno); setMostrarCalificarAlumno(true); }}>
-                          <LinearGradient colors={['#5b6bff', '#1AC952']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.calificarBtnGradient}>
+                          <LinearGradient colors={['#5b6bff', '#6b7bff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.calificarBtnGradient}>
                             <IconSymbol name="pencil" size={13} color="#fff" />
                             <ThemedText style={styles.calificarBtnText}>Calificar</ThemedText>
                           </LinearGradient>
@@ -546,7 +546,7 @@ export function TaskDetailScreen() {
       <Modal visible={mostrarCalificarAlumno} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { maxHeight: '60%' }]}>
-            <LinearGradient colors={['#5b6bff', '#1AC952']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.modalHeader}>
+            <LinearGradient colors={['#5b6bff', '#6b7bff']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={styles.modalHeader}>
               <View style={{ flex: 1 }}>
                 <ThemedText style={styles.modalTitle}>Calificar</ThemedText>
                 <ThemedText style={styles.modalSubtitle}>{alumnoSeleccionado?.nombre} {alumnoSeleccionado?.apellido}</ThemedText>
@@ -665,50 +665,74 @@ export function TaskDetailScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+export const styles = StyleSheet.create({
+  /* ───────── Root layout ───────── */
   container: { flex: 1, backgroundColor: '#f5f5f5' },
   centerContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#f5f5f5' },
 
+  /* ───────── Header ───────── */
   header: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingTop: 52, paddingBottom: 20, gap: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 52,
+    paddingBottom: 20,
+    gap: 12,
   },
   backBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    justifyContent: 'center', alignItems: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: 'rgba(255,255,255,0.25)',
   },
   headerTitle: { flex: 1, fontSize: 18, fontWeight: 'bold', color: '#fff' },
 
+  /* ───────── Scroll content ───────── */
   scrollContent: { padding: 16, paddingBottom: 36 },
 
+  /* ───────── Info card ───────── */
   infoCard: {
-    backgroundColor: '#fff', borderRadius: 16,
-    borderWidth: 1.5, borderColor: '#e0e0e0',
-    padding: 16, marginBottom: 14,
-    shadowColor: '#5b6bff', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.07, shadowRadius: 8, elevation: 3,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    padding: 16,
+    marginBottom: 14,
+    shadowColor: '#5b6bff',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.07,
+    shadowRadius: 8,
+    elevation: 3,
   },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  infoIconBox: {
-    width: 38, height: 38, borderRadius: 10,
-    backgroundColor: '#ede9ff', justifyContent: 'center', alignItems: 'center',
-  },
+  infoIconBox: { width: 38, height: 38, borderRadius: 10, backgroundColor: '#ede9ff', justifyContent: 'center', alignItems: 'center' },
   infoLabel: { fontSize: 11, color: '#9a9aaa', letterSpacing: 0.4 },
   infoValue: { fontSize: 16, fontWeight: '600', color: '#1a1a2e', marginTop: 2 },
   divider: { height: 1, backgroundColor: '#e0e0e0', marginVertical: 12 },
 
+  /* ───────── Descripción ───────── */
   section: {
-    backgroundColor: '#fff', borderRadius: 16,
-    borderWidth: 1.5, borderColor: '#e0e0e0',
-    padding: 16, marginBottom: 14,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    padding: 16,
+    marginBottom: 14,
   },
   sectionTitle: { fontSize: 13, fontWeight: '700', color: '#5b6bff', marginBottom: 8, letterSpacing: 0.3 },
   description: { fontSize: 14, lineHeight: 22, color: '#1a1a2e' },
 
+  /* ───────── Estado alumno ───────── */
   statusCard: {
-    borderWidth: 1.5, borderRadius: 16, padding: 16, marginBottom: 14,
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    borderWidth: 1.5,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 14,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     backgroundColor: '#fff',
   },
   estadoLabel: { fontSize: 14, fontWeight: '700' },
@@ -716,123 +740,144 @@ const styles = StyleSheet.create({
   gradeContainer: { paddingVertical: 6, paddingHorizontal: 12, borderRadius: 10 },
   grade: { fontSize: 15, fontWeight: '700' },
 
+  /* ───────── Acciones alumno ───────── */
   actionsContainer: { marginBottom: 14, gap: 10 },
   actionGradient: { borderRadius: 14 },
-  actionBtn: {
-    flexDirection: 'row', alignItems: 'center',
-    justifyContent: 'center', gap: 8, paddingVertical: 14,
-  },
+  actionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, paddingVertical: 14 },
   actionBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
   actionBtnOutline: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, paddingVertical: 13, borderRadius: 14,
-    borderWidth: 1.5, borderColor: '#EF4444', backgroundColor: '#FEF2F2',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 13,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#EF4444',
+    backgroundColor: '#FEF2F2',
   },
 
+  /* ───────── Archivo subido ───────── */
   fileCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#fff', borderRadius: 14,
-    borderWidth: 1.5, borderColor: '#e0e0e0', padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    padding: 14,
   },
-  fileIconBox: {
-    width: 42, height: 42, borderRadius: 10,
-    backgroundColor: '#ede9ff', justifyContent: 'center', alignItems: 'center',
-  },
+  fileIconBox: { width: 42, height: 42, borderRadius: 10, backgroundColor: '#ede9ff', justifyContent: 'center', alignItems: 'center' },
   fileName: { fontSize: 14, fontWeight: '600', color: '#1a1a2e' },
   fileDate: { fontSize: 11, color: '#9a9aaa', marginTop: 2 },
 
+  /* ───────── Comentarios ───────── */
   commentsSection: { marginTop: 4 },
   commentCardProfe: {
-    flexDirection: 'row', gap: 10,
-    backgroundColor: '#ede9ff', borderRadius: 14,
-    borderWidth: 1.5, borderColor: '#c4b8ff', padding: 14, marginBottom: 10,
+    flexDirection: 'row',
+    gap: 10,
+    backgroundColor: '#ede9ff',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#c4b8ff',
+    padding: 14,
+    marginBottom: 10,
   },
   commentCard: {
-    flexDirection: 'row', gap: 10,
-    backgroundColor: '#fff', borderRadius: 14,
-    borderWidth: 1.5, borderColor: '#e0e0e0', padding: 14, marginBottom: 10,
+    flexDirection: 'row',
+    gap: 10,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    padding: 14,
+    marginBottom: 10,
   },
-  commentAvatar: {
-    width: 34, height: 34, borderRadius: 17,
-    justifyContent: 'center', alignItems: 'center',
-  },
+  commentAvatar: { width: 34, height: 34, borderRadius: 17, justifyContent: 'center', alignItems: 'center' },
   commentAuthor: { fontSize: 13, fontWeight: '600', color: '#1a1a2e' },
   commentText: { fontSize: 13, lineHeight: 18, color: '#1a1a2e', marginTop: 4 },
   commentDate: { fontSize: 11, color: '#9a9aaa', marginTop: 4 },
   addCommentBtn: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    gap: 8, paddingVertical: 12, borderRadius: 14, marginBottom: 10,
-    borderWidth: 1.5, borderColor: '#5b6bff', backgroundColor: '#ede9ff50',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 14,
+    marginBottom: 10,
+    borderWidth: 1.5,
+    borderColor: '#5b6bff',
+    backgroundColor: '#ede9ff50',
   },
 
+  /* ───────── Sección profesor ───────── */
   teacherSection: { marginTop: 4 },
 
+  /* ───────── Modal genérico ───────── */
   modalOverlay: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' },
-  modalContent: {
-    backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    maxHeight: '88%', overflow: 'hidden',
-  },
+  modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '88%', overflow: 'hidden' },
   modalHeader: {
-    flexDirection: 'row', justifyContent: 'space-between',
-    alignItems: 'center', paddingHorizontal: 20, paddingVertical: 16,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   modalTitle: { color: '#fff', fontSize: 17, fontWeight: 'bold' },
   modalSubtitle: { color: 'rgba(255,255,255,0.8)', fontSize: 12, marginTop: 2 },
   modalLabel: { color: '#9a9aaa', fontSize: 11, letterSpacing: 0.8, marginBottom: 8 },
-  modalInputWrapper: {
-    backgroundColor: '#f5f5f5', borderWidth: 1.5,
-    borderColor: '#e0e0e0', borderRadius: 12, marginBottom: 8,
-  },
-  modalInput: {
-    paddingHorizontal: 14, paddingVertical: 10,
-    fontSize: 15, color: '#1a1a2e', minHeight: 90,
-  },
+
+  modalInputWrapper: { backgroundColor: '#f5f5f5', borderWidth: 1.5, borderColor: '#e0e0e0', borderRadius: 12, marginBottom: 8 },
+  modalInput: { paddingHorizontal: 14, paddingVertical: 10, fontSize: 15, color: '#1a1a2e', minHeight: 90 },
+
   submitGradient: { borderRadius: 14, marginTop: 4 },
   submitBtn: { height: 52, justifyContent: 'center', alignItems: 'center' },
   submitBtnText: { color: '#fff', fontWeight: 'bold', fontSize: 15 },
 
-  conteoRow: {
-    flexDirection: 'row', gap: 8,
-    paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4,
-  },
-  conteoBadge: {
-    flex: 1, alignItems: 'center', paddingVertical: 10,
-    borderRadius: 12, borderWidth: 1.5,
-  },
+  /* ───────── Conteo & filtros (modal entregas) ───────── */
+  conteoRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 4 },
+  conteoBadge: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 12, borderWidth: 1.5 },
   conteoNum: { fontSize: 20, fontWeight: 'bold' },
   conteoLabel: { fontSize: 10, fontWeight: '600', marginTop: 2 },
+
   filtrosScroll: { maxHeight: 50 },
   filtrosContainer: { paddingHorizontal: 16, paddingVertical: 8, gap: 8, flexDirection: 'row' },
-  filtroBtn: {
-    paddingHorizontal: 14, paddingVertical: 6,
-    borderRadius: 20, borderWidth: 1.5, borderColor: '#e0e0e0', backgroundColor: '#f5f5f5',
-  },
+  filtroBtn: { paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20, borderWidth: 1.5, borderColor: '#e0e0e0', backgroundColor: '#f5f5f5' },
   filtroBtnActive: { backgroundColor: '#5b6bff', borderColor: '#5b6bff' },
   filtroText: { fontSize: 13, color: '#9a9aaa', fontWeight: '500' },
   filtroTextActive: { color: '#fff', fontWeight: '700' },
+
   loadingContainer: { justifyContent: 'center', alignItems: 'center', paddingVertical: 40 },
+
+  /* ───────── Lista alumnos (modal entregas) ───────── */
   alumnosList: { flex: 1, paddingHorizontal: 16, paddingTop: 8 },
   alumnoCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    backgroundColor: '#fff', borderRadius: 14,
-    borderWidth: 1.5, borderColor: '#e0e0e0', padding: 14, marginBottom: 10,
-    shadowColor: '#5b6bff', shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05, shadowRadius: 4, elevation: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#fff',
+    borderRadius: 14,
+    borderWidth: 1.5,
+    borderColor: '#e0e0e0',
+    padding: 14,
+    marginBottom: 10,
+    shadowColor: '#5b6bff',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  alumnoAvatar: {
-    width: 42, height: 42, borderRadius: 21,
-    justifyContent: 'center', alignItems: 'center',
-  },
+  alumnoAvatar: { width: 42, height: 42, borderRadius: 21, justifyContent: 'center', alignItems: 'center' },
   alumnoAvatarText: { fontSize: 17, fontWeight: 'bold' },
   alumnoNombre: { fontSize: 14, fontWeight: '600', color: '#1a1a2e' },
   alumnoEstado: { fontSize: 12, fontWeight: '600' },
   alumnoCalif: { fontSize: 12, color: '#9a9aaa' },
   alumnoArchivo: { fontSize: 11, color: '#9a9aaa', marginTop: 3 },
+
   emptyEntregas: { alignItems: 'center', paddingVertical: 40 },
   emptyEntregasText: { color: '#9a9aaa', marginTop: 10 },
-  calificarBtnGradient: {
-    flexDirection: 'row', alignItems: 'center', gap: 4,
-    paddingHorizontal: 10, paddingVertical: 7, borderRadius: 10,
-  },
+
+  calificarBtnGradient: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 7, borderRadius: 10 },
   calificarBtnText: { color: '#fff', fontSize: 12, fontWeight: '600' },
 });
