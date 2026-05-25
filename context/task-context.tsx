@@ -1,8 +1,4 @@
-/* ─────────────────────────  task-context.tsx  ─────────────────────────
-   Contexto global para la gestión de tareas y entregas
-   (versión completa con columnas `archivo_guia_url` y `creador_id`)
-──────────────────────────────────────────────────────────────────────── */
-
+/* ────────────────  task-context.tsx  ──────────────── */
 import { supabase } from '@/config/supabase';
 import {
   createContext,
@@ -14,7 +10,7 @@ import {
 import { Alert } from 'react-native';
 import { useAuth } from './auth-context';
 
-/* ────────────────  Tipos  ──────────────── */
+/* ────────────────────  Tipos  ──────────────────── */
 export interface Tarea {
   id: string;
   clase_id: string;
@@ -22,9 +18,9 @@ export interface Tarea {
   descripcion: string;
   puntos_maximos: number;
   fecha_entrega: string;
-  creador_id: string;           // ← antes era profesor_id
+  creador_id: string;
   created_at?: string;
-  archivo_guia_url?: string;    // URL pública del material adjunto
+  archivo_guia_url?: string | null;
 }
 
 export interface Entrega {
@@ -32,23 +28,15 @@ export interface Entrega {
   tarea_id: string;
   estudiante_id: string;
   estado: 'pendiente' | 'entregado' | 'calificado';
-  archivo_guia_url?: string;
-  nombre_archivo?: string;
-  fecha_entrega?: string;
-  calificacion?: number;
-  comentario_profesor?: string;
+  archivo_entrega_url?: string | null;
+  fecha_envio?: string | null;
+  calificacion?: number | null;
+  /** último comentario dejado por el profesor */
+  comentario_profesor?: string | null;
+  /** último comentario dejado por el alumno */
+  comentario_alumno?: string | null;
 }
 
-export interface Comentario {
-  id: string;
-  entrega_id: string;
-  autor_id: string;
-  autor_nombre: string;
-  contenido: string;
-  fecha_creacion: string;
-}
-
-/* ────────────────  Contexto  ──────────────── */
 interface TaskContextType {
   tareas: Tarea[];
   loading: boolean;
@@ -69,8 +57,8 @@ interface TaskContextType {
   entregarTarea: (
     tareaId: string,
     estudianteId: string,
-    archivoUri: string,
-    nombreArchivo: string,
+    archivoUri: string | null,
+    nombreArchivo: string | null,
   ) => Promise<void>;
 
   obtenerEntrega: (
@@ -87,25 +75,19 @@ interface TaskContextType {
   anularEntrega: (tareaId: string, estudianteId: string) => Promise<void>;
   eliminarArchivo: (tareaId: string, estudianteId: string) => Promise<void>;
 
-  agregarComentario: (
-    entregaId: string,
-    autorId: string,
-    autorNombre: string,
-    contenido: string,
-  ) => Promise<void>;
-
-  obtenerComentarios: (entregaId: string) => Promise<Comentario[]>;
+  /** agrega o actualiza el comentario del alumno */
+  agregarComentarioAlumno: (entregaId: string, contenido: string) => Promise<void>;
 }
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
 
-/* ────────────────  Provider  ──────────────── */
+/* ────────────────────  Provider  ──────────────────── */
 export function TaskProvider({ children }: { children: ReactNode }) {
   const [tareas, setTareas] = useState<Tarea[]>([]);
   const [loading, setLoading] = useState(false);
   const { user } = useAuth();
 
-  /* Cargar todas las tareas del usuario logueado */
+  /* Cargar todas las tareas una vez autenticado */
   useEffect(() => {
     if (user) cargarTareas();
   }, [user]);
@@ -124,7 +106,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  /* ────────────────  Crear tarea  ──────────────── */
+  /* ────────────────  CRUD TAREAS  ──────────────── */
   const crearTarea: TaskContextType['crearTarea'] = async (
     claseId,
     titulo,
@@ -137,43 +119,41 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     try {
       if (!user) throw new Error('Usuario no autenticado');
 
-      /* 1. Subir archivo guía (si se seleccionó uno) */
       let publicUrl: string | null = null;
 
+      /* 1) Subir archivo guía (opcional) */
       if (archivoUri && archivoNombre) {
-  const path = `${claseId}/${Date.now()}_${archivoNombre}`;
+        const path = `${claseId}/${Date.now()}_${archivoNombre}`;
+        const response = await fetch(archivoUri);
+        const arrayBuffer = await response.arrayBuffer();
 
-  // ✅ Leer el archivo como base64 y convertirlo a ArrayBuffer
-  const response = await fetch(archivoUri);
-  const arrayBuffer = await response.arrayBuffer();
+        const { error: upErr } = await supabase.storage
+          .from('entregas')
+          .upload(path, arrayBuffer, {
+            cacheControl: '3600',
+            upsert: true,
+            contentType: 'application/octet-stream',
+          });
+        if (upErr) throw upErr;
 
-  const { error: upErr } = await supabase.storage
-    .from('entregas')
-    .upload(path, arrayBuffer, {
-      cacheControl: '3600',
-      upsert: true,
-      contentType: 'application/octet-stream',
-    });
-  if (upErr) throw upErr;
+        const { data: pub } = await supabase.storage
+          .from('entregas')
+          .getPublicUrl(path);
 
-  const { data: pub } = await supabase.storage
-    .from('entregas')
-    .getPublicUrl(path);
+        publicUrl = pub?.publicUrl ?? null;
+      }
 
-  publicUrl = pub?.publicUrl ?? null;
-}
-
-      /* 2. Insertar la fila en la tabla `tareas` */
+      /* 2) Insertar tarea */
       const { data, error } = await supabase
         .from('tareas')
         .insert([
           {
-            clase_id        : claseId,
-            titulo          : titulo.trim(),
-            descripcion     : descripcion.trim(),
-            puntos_maximos  : puntosMaximos,
-            fecha_entrega   : fechaEntrega,
-            creador_id      : user.id,     // ← columna correcta
+            clase_id: claseId,
+            titulo: titulo.trim(),
+            descripcion: descripcion.trim(),
+            puntos_maximos: puntosMaximos,
+            fecha_entrega: fechaEntrega,
+            creador_id: user.id,
             archivo_guia_url: publicUrl,
           },
         ])
@@ -186,11 +166,10 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       Alert.alert('✓ Éxito', 'Tarea creada correctamente');
     } catch (err: any) {
       console.error('Error creando tarea:', err?.message ?? err);
-      throw err; // se captura arriba en la pantalla
+      throw err;
     }
   };
 
-  /* ────────────────  Eliminar tarea  ──────────────── */
   const eliminarTarea = async (tareaId: string) => {
     try {
       const { error } = await supabase.from('tareas').delete().eq('id', tareaId);
@@ -202,7 +181,6 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  /* ────────────────  Obtener tareas por clase  ──────────────── */
   const obtenerTareasPorClase = async (claseId: string) => {
     try {
       const { data, error } = await supabase
@@ -217,7 +195,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  /* ────────────────  Entregar tarea  ──────────────── */
+  /* ────────────────  ENTREGAS  ──────────────── */
   const entregarTarea: TaskContextType['entregarTarea'] = async (
     tareaId,
     estudianteId,
@@ -225,23 +203,28 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     nombreArchivo,
   ) => {
     try {
-      const path = `${tareaId}/${estudianteId}_${Date.now()}_${nombreArchivo}`;
-      const blob = await (await fetch(archivoUri)).blob();
+      let publicUrl: string | null = null;
 
-      const { error: upErr } = await supabase.storage
-        .from('entregas')
-        .upload(path, blob, {
-          upsert: true,
-          contentType: blob.type || 'application/octet-stream',
-        });
-      if (upErr) throw upErr;
+      /* 1) subir archivo del alumno (opcional) */
+      if (archivoUri && nombreArchivo) {
+        const path = `${tareaId}/${estudianteId}_${Date.now()}_${nombreArchivo}`;
+        const blob = await (await fetch(archivoUri)).blob();
 
-      const { data: pub } = await supabase.storage
-        .from('entregas')
-        .getPublicUrl(path);
-      const publicUrl = pub?.publicUrl;
+        const { error: upErr } = await supabase.storage
+          .from('entregas')
+          .upload(path, blob, {
+            upsert: true,
+            contentType: blob.type || 'application/octet-stream',
+          });
+        if (upErr) throw upErr;
 
-      /* ¿Existe una entrega previa? */
+        const { data: pub } = await supabase.storage
+          .from('entregas')
+          .getPublicUrl(path);
+        publicUrl = pub?.publicUrl ?? null;
+      }
+
+      /* 2) insertar o actualizar entrega */
       const { data: existente } = await supabase
         .from('entregas')
         .select('id')
@@ -249,26 +232,24 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         .eq('estudiante_id', estudianteId)
         .maybeSingle();
 
+      const payload = {
+        archivo_entrega_url: publicUrl,
+        fecha_envio: new Date().toISOString(),
+        estado: 'entregado' as const,
+      };
+
       if (existente) {
         const { error } = await supabase
           .from('entregas')
-          .update({
-            archivo_guia_url: publicUrl,
-            nombre_archivo  : nombreArchivo,
-            fecha_entrega   : new Date().toISOString(),
-            estado          : 'entregado',
-          })
+          .update(payload)
           .eq('id', existente.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from('entregas').insert([
           {
-            tarea_id        : tareaId,
-            estudiante_id   : estudianteId,
-            archivo_guia_url: publicUrl,
-            nombre_archivo  : nombreArchivo,
-            fecha_entrega   : new Date().toISOString(),
-            estado          : 'entregado',
+            tarea_id: tareaId,
+            estudiante_id: estudianteId,
+            ...payload,
           },
         ]);
         if (error) throw error;
@@ -279,7 +260,6 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  /* ────────────────  Obtener entrega  ──────────────── */
   const obtenerEntrega = async (
     tareaId: string,
     estudianteId: string,
@@ -299,7 +279,6 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  /* ────────────────  Calificar entrega  ──────────────── */
   const calificarEntrega = async (
     entregaId: string,
     calificacion: number,
@@ -321,18 +300,17 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  /* ────────────────  Anular entrega  ──────────────── */
   const anularEntrega = async (tareaId: string, estudianteId: string) => {
     try {
       const { error } = await supabase
         .from('entregas')
         .update({
-          estado            : null,
-          archivo_guia_url  : null,
-          nombre_archivo    : null,
-          fecha_entrega     : null,
-          calificacion      : null,
+          estado: null,
+          archivo_entrega_url: null,
+          fecha_envio: null,
+          calificacion: null,
           comentario_profesor: null,
+          comentario_alumno: null,
         })
         .eq('tarea_id', tareaId)
         .eq('estudiante_id', estudianteId);
@@ -343,15 +321,13 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  /* ────────────────  Eliminar archivo  ──────────────── */
   const eliminarArchivo = async (tareaId: string, estudianteId: string) => {
     try {
       const { error } = await supabase
         .from('entregas')
         .update({
-          archivo_guia_url: null,
-          nombre_archivo  : null,
-          estado          : null,
+          archivo_entrega_url: null,
+          estado: null,
         })
         .eq('tarea_id', tareaId)
         .eq('estudiante_id', estudianteId);
@@ -362,42 +338,20 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  /* ────────────────  Comentarios  ──────────────── */
-  const agregarComentario = async (
+  /* ────────────────  Comentario Alumno  ──────────────── */
+  const agregarComentarioAlumno = async (
     entregaId: string,
-    autorId: string,
-    autorNombre: string,
     contenido: string,
   ) => {
     try {
-      const { error } = await supabase.from('comentarios').insert([
-        {
-          entrega_id : entregaId,
-          autor_id   : autorId,
-          autor_nombre: autorNombre,
-          contenido,
-          fecha_creacion: new Date().toISOString(),
-        },
-      ]);
+      const { error } = await supabase
+        .from('entregas')
+        .update({ comentario_alumno: contenido })
+        .eq('id', entregaId);
       if (error) throw error;
-      Alert.alert('✓ Éxito', 'Comentario agregado');
+      Alert.alert('✓ Éxito', 'Comentario enviado');
     } catch (err) {
       throw err;
-    }
-  };
-
-  const obtenerComentarios = async (entregaId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('comentarios')
-        .select('*')
-        .eq('entrega_id', entregaId)
-        .order('fecha_creacion', { ascending: false });
-      if (error) throw error;
-      return (data as Comentario[]) ?? [];
-    } catch (err) {
-      console.error(err);
-      return [];
     }
   };
 
@@ -415,8 +369,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         calificarEntrega,
         anularEntrega,
         eliminarArchivo,
-        agregarComentario,
-        obtenerComentarios,
+        agregarComentarioAlumno,
       }}>
       {children}
     </TaskContext.Provider>
