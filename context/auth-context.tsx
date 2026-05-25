@@ -1,20 +1,23 @@
+/* ────────────────  auth-context.tsx  ──────────────── */
 import { supabase } from '@/config/supabase';
 import React, {
   createContext,
+  Dispatch,
   ReactNode,
+  SetStateAction,
   useContext,
-  useState
+  useState,
 } from 'react';
 import { Alert } from 'react-native';
 
-/* ──────────────────────────────────────────────────────────────────────────
- *  Tipado de los registros y del contexto
- * ─────────────────────────────────────────────────────────────────────── */
+/* ──────────────────────────────────────────
+ *  Tipos
+ * ────────────────────────────────────────── */
 export interface User {
   id: string;
   nombre: string;
   apellido: string;
-  correo: string;
+  email: string;                       // ← tu tabla tiene «email»
   avatar_url?: string | null;
   expo_push_token?: string | null;
   recordatorio_frecuencia?: string | null;
@@ -22,67 +25,58 @@ export interface User {
   hora_preferida?: number | null;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: User | null;
+  setUser: Dispatch<SetStateAction<User | null>>;   // 👈 ahora expuesto
   loading: boolean;
-  login: (correo: string, contraseña: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   registro: (
     nombre: string,
     apellido: string,
-    correo: string,
-    contraseña: string
+    email: string,
+    password: string
   ) => Promise<void>;
   editarPerfil: (payload: {
     nombre?: string;
     apellido?: string;
-    correo?: string;
+    email?: string;
     avatarUri?: string;
   }) => Promise<void>;
   borrarCuenta: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
- *  Creación del contexto
- * ─────────────────────────────────────────────────────────────────────── */
+/* ───────────────  Contexto  ─────────────── */
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-/* ──────────────────────────────────────────────────────────────────────────
- *  Helper: subir imagen a Storage → devuelve URL pública
- * ─────────────────────────────────────────────────────────────────────── */
+/* ────────── helper: subir avatar a Storage ────────── */
 async function uploadAvatar(uri: string, userId: string): Promise<string> {
-  // Asegúrate de haber creado en Supabase un bucket "avatars" (lectura pública)
   const bucket = supabase.storage.from('avatars');
-  const path = `${userId}/${Date.now()}.jpg`;
+  const path   = `${userId}/${Date.now()}.jpg`;
+  const blob   = await fetch(uri).then(r => r.blob());
 
-  // Convertimos la URI local a blob
-  const blob = await fetch(uri).then((r) => r.blob());
-
-  const { error } = await bucket.upload(path, blob, {
-    upsert: true,
-  });
+  const { error } = await bucket.upload(path, blob, { upsert: true });
   if (error) throw error;
 
   const { publicUrl } = bucket.getPublicUrl(path).data;
   return publicUrl;
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
- *  Provider
- * ─────────────────────────────────────────────────────────────────────── */
+/* ─────────────  Provider  ───────────── */
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user,    setUser]    = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
 
-  /* ── LOGIN ──────────────────────────────────────────────────────────── */
-  const login = async (correo: string, contraseña: string) => {
+  /* ---------- LOGIN ---------- */
+  const login = async (email: string, password: string) => {
     try {
       setLoading(true);
+
       const { data, error } = await supabase
         .from('usuarios')
         .select('*')
-        .eq('email', correo.trim())
-        .eq('password', contraseña.trim())
+        .eq('email', email.trim())
+        .eq('password', password.trim())
         .single();
 
       if (error || !data) {
@@ -94,51 +88,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: data.id,
         nombre: data.nombre,
         apellido: data.apellido,
-        correo: data.email,
+        email: data.email,
         avatar_url: data.avatar_url,
         expo_push_token: data.expo_push_token,
         recordatorio_frecuencia: data.recordatorio_frecuencia,
         recordatorio_intervalo_horas: data.recordatorio_intervalo_horas,
         hora_preferida: data.hora_preferida,
       });
-    } catch (err) {
-      console.error(err);
-      Alert.alert('Error', 'Error al conectar con el servidor');
+    } catch {
+      Alert.alert('Error', 'No se pudo iniciar sesión');
     } finally {
       setLoading(false);
     }
   };
 
-  /* ── REGISTRO ───────────────────────────────────────────────────────── */
-  const registro = async (
-    nombre: string,
-    apellido: string,
-    correo: string,
-    contraseña: string
-  ) => {
+  /* ---------- REGISTRO ---------- */
+  const registro = async (nombre: string, apellido: string, email: string, password: string) => {
     try {
       setLoading(true);
-      // Verificar duplicados
-      const { data: existe } = await supabase
+
+      const { data: dup } = await supabase
         .from('usuarios')
         .select('email')
-        .eq('email', correo.trim())
+        .eq('email', email.trim())
         .maybeSingle();
 
-      if (existe) {
+      if (dup) {
         Alert.alert('Error', 'Este correo ya está registrado');
         return;
       }
 
-      const { data: nuevosDatos, error } = await supabase
+      const { data, error } = await supabase
         .from('usuarios')
         .insert([
           {
-            nombre: nombre.trim(),
-            apellido: apellido.trim(),
-            email: correo.trim(),
-            password: contraseña.trim(),
-            recordatorio_frecuencia: 'diario',
+            nombre   : nombre.trim(),
+            apellido : apellido.trim(),
+            email    : email.trim(),
+            password : password.trim(),
+            recordatorio_frecuencia     : 'diario',
             recordatorio_intervalo_horas: 24,
           },
         ])
@@ -148,25 +136,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) throw error;
 
       setUser({
-        id: nuevosDatos.id,
-        nombre: nuevosDatos.nombre,
-        apellido: nuevosDatos.apellido,
-        correo: nuevosDatos.email,
+        id: data.id,
+        nombre: data.nombre,
+        apellido: data.apellido,
+        email: data.email,
       });
-      Alert.alert('Éxito', '¡Usuario registrado correctamente!');
+      Alert.alert('✓ Éxito', '¡Usuario registrado!');
     } catch (err: any) {
-      console.error(err);
-      Alert.alert('Error', err.message || 'No se pudo completar el registro');
+      Alert.alert('Error', err.message || 'No se pudo registrar');
     } finally {
       setLoading(false);
     }
   };
 
-  /* ── EDITAR PERFIL ──────────────────────────────────────────────────── */
+  /* ---------- EDITAR PERFIL ---------- */
   const editarPerfil = async (updates: {
     nombre?: string;
     apellido?: string;
-    correo?: string;
+    email?: string;
     avatarUri?: string;
   }) => {
     try {
@@ -180,9 +167,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data, error } = await supabase
         .from('usuarios')
         .update({
-          nombre: updates.nombre ?? user.nombre,
+          nombre  : updates.nombre   ?? user.nombre,
           apellido: updates.apellido ?? user.apellido,
-          email: updates.correo ?? user.correo,
+          email   : updates.email    ?? user.email,
           avatar_url,
         })
         .eq('id', user.id)
@@ -191,78 +178,76 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (error) throw error;
 
-      setUser({
-        ...user,
-        nombre: data.nombre,
+      /* refleja cambios en estado */
+      setUser(prev => prev ? {
+        ...prev,
+        nombre : data.nombre,
         apellido: data.apellido,
-        correo: data.email,
+        email  : data.email,
         avatar_url,
-      });
+      } : prev);
+
       Alert.alert('✓ Éxito', 'Perfil actualizado');
     } catch (err: any) {
-      console.error(err);
       Alert.alert('Error', err.message || 'No se pudo actualizar el perfil');
     }
   };
 
-  /* ── BORRAR CUENTA ──────────────────────────────────────────────────── */
-  const borrarCuenta = async () => {
-    return new Promise<void>((resolve) => {
-      Alert.alert(
-        'Eliminar cuenta',
-        'Esta acción es irreversible. ¿Deseas continuar?',
-        [
-          { text: 'Cancelar', style: 'cancel' },
-          {
-            text: 'Eliminar',
-            style: 'destructive',
-            onPress: async () => {
-              try {
-                if (!user) throw new Error('Usuario no autenticado');
+  /* ---------- BORRAR CUENTA ---------- */
+  const borrarCuenta = async () => new Promise<void>((resolve) => {
+    Alert.alert(
+      'Eliminar cuenta',
+      'Esta acción es irreversible. ¿Deseas continuar?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text : 'Eliminar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (!user) throw new Error('Usuario no autenticado');
 
-                /* Elimina dependencias críticas.  Añade tablas según necesidad */
-                await supabase.from('inscripciones').delete().eq('estudiante_id', user.id);
-                await supabase.from('entregas').delete().eq('estudiante_id', user.id);
+              await supabase.from('inscripciones').delete().eq('estudiante_id', user.id);
+              await supabase.from('entregas').delete().eq('estudiante_id', user.id);
+              const { error } = await supabase.from('usuarios').delete().eq('id', user.id);
+              if (error) throw error;
 
-                const { error } = await supabase.from('usuarios').delete().eq('id', user.id);
-                if (error) throw error;
-
-                setUser(null);
-              } catch (err: any) {
-                Alert.alert('Error', err.message || 'No se pudo eliminar la cuenta');
-              } finally {
-                resolve();
-              }
-            },
+              setUser(null);
+            } catch (err: any) {
+              Alert.alert('Error', err.message || 'No se pudo eliminar la cuenta');
+            } finally {
+              resolve();
+            }
           },
-        ]
-      );
-    });
-  };
+        },
+      ]
+    );
+  });
 
-  /* ── LOGOUT ─────────────────────────────────────────────────────────── */
-  const logout = async () => {
-    setUser(null);
-  };
+  /* ---------- LOGOUT ---------- */
+  const logout = async () => setUser(null);
 
-  /* ── Mantener sesión en futuras versiones (opcional) ──────────────── */
-  // Aquí podrías checar AsyncStorage o Supabase Auth para sesión persistente
-
+  /* ---------- Provider ---------- */
   return (
     <AuthContext.Provider
-      value={{ user, loading, login, registro, editarPerfil, borrarCuenta, logout }}>
+      value={{
+        user,
+        setUser,           // 👈 ahora disponible en los consumidores
+        loading,
+        login,
+        registro,
+        editarPerfil,
+        borrarCuenta,
+        logout,
+      }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-/* ──────────────────────────────────────────────────────────────────────────
- *  Hook de conveniencia
- * ─────────────────────────────────────────────────────────────────────── */
+/* ───────────────  Hook  ─────────────── */
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth debe ser usado dentro de un AuthProvider');
-  }
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth debe usarse dentro de AuthProvider');
+  return ctx;
 }
